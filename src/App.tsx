@@ -1,14 +1,14 @@
 import React from 'react'
 import './App.css';
 import { useState } from 'react'
-import DrawingBoard from './components/DrawingBoard.tsx'
+import Game from './components/Game.tsx'
 import Lobby from './components/Lobby.tsx';
 
 //game states => Lobby , GameRunning , GameOver 
 function App() {
   type GameState = 'Lobby' | 'GameRunning' | 'GameOver';
 
-  const [gameState , changeState] = useState<GameState>('Lobby');
+  const [gameState , changeState] = useState<GameState>('GameRunning');
 
   function createRoom(userName: string): void{
     changeState("GameRunning")
@@ -21,10 +21,14 @@ function App() {
 
   if(gameState == 'GameRunning'){
     return (
-     <DrawingBoard></DrawingBoard>
+      <Game></Game>
     );
-  }else if(gameState == "Lobby"){
-    return  <Lobby onCreate={createRoom} onJoin={joinRoom}></Lobby>
+  }
+
+  if(gameState == "Lobby"){
+    return  ( 
+      <Lobby onCreate={createRoom} onJoin={joinRoom}></Lobby>
+    );
   }
 
 }
