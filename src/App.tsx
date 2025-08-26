@@ -10,11 +10,11 @@ function App() {
 
   const [gameState , changeState] = useState<GameState>('Lobby');
 
-  function createRoom(): void{
+  function createRoom(userName: string): void{
     changeState("GameRunning")
   }
 
-  function joinRoom(id: string): void{
+  function joinRoom(id: string , userName: string): void{
     changeState("GameRunning")
   }
 
