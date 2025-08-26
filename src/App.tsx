@@ -1,18 +1,20 @@
+import React from 'react'
 import './App.css';
 import { useState } from 'react'
-import DrawingBoard from './components/DrawingBoard'
-import Lobby from './components/Lobby';
+import DrawingBoard from './components/DrawingBoard.tsx'
+import Lobby from './components/Lobby.tsx';
 
 //game states => Lobby , GameRunning , GameOver 
 function App() {
+  type GameState = 'Lobby' | 'GameRunning' | 'GameOver';
 
-  const [gameState , changeState] = useState('Lobby');
+  const [gameState , changeState] = useState<GameState>('Lobby');
 
-  function createRoom(){
+  function createRoom(): void{
     changeState("GameRunning")
   }
 
-  function joinRoom(id){
+  function joinRoom(id: string): void{
     changeState("GameRunning")
   }
 

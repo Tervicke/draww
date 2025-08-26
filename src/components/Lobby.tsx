@@ -24,7 +24,7 @@ export default function Lobby({ onJoin, onCreate }) {
 
   return (
     <div style={styles.container}>
-      <h1>Welcome to the Game Lobby</h1>
+      <h1>Draww</h1>
 
       <div style={styles.section}>
         <input
