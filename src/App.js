@@ -6,15 +6,16 @@ import Lobby from './components/Lobby';
 //game states => Lobby , GameRunning , GameOver 
 function App() {
 
+  const [gameState , changeState] = useState('Lobby');
+
   function createRoom(){
-    alert("creating a room");
+    changeState("GameRunning")
   }
 
   function joinRoom(id){
-    alert("joining a room with id " + id);
+    changeState("GameRunning")
   }
 
-  const [gameState , changeState] = useState('Lobby');
 
   if(gameState == 'GameRunning'){
     return (
