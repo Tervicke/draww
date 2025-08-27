@@ -59,12 +59,15 @@ function DrawingBoard({ token }) {
   const draw = (e: MouseEvent) => {
     if (!isDrawing.current || !ctxRef.current) return;
     const pos = getMousePos(e);
+    sendSafe(JSON.stringify({ x: pos.x, y: pos.y }));
     ctxRef.current.lineTo(pos.x, pos.y);
     ctxRef.current.stroke();
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e) => {
     if (!ctxRef.current) return;
+    const pos = getMousePos(e);
+    sendSafe(JSON.stringify({ x: pos.x, y: pos.y }));
     isDrawing.current = false;
     ctxRef.current.closePath();
   };
@@ -82,11 +85,11 @@ function DrawingBoard({ token }) {
     if (socket.readyState === WebSocket.CONNECTING) {
       // Only add onopen if socket isn't already open
       socket.onopen = () => {
-        socket.send(token);
+        socket.send(JSON.stringify({ type: "token", token: token }));
         console.log("token message sent");
       };
     } else if (socket.readyState === WebSocket.OPEN) {
-      socket.send(token);
+      socket.send(JSON.stringify({ type: "token", token: token }));
       console.log("token message sent");
     }
   }, [socket, token]);
