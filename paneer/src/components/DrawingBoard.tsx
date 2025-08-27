@@ -1,10 +1,23 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, RefObject } from "react";
+import { useWebSocket } from "./WebSocketContext.tsx";
 
 function DrawingBoard() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawing = useRef(false);
-
+  const socket = useWebSocket();
+  //safe sending in the socket
+  const sendSafe = (msg: string) => {
+    if (!socket) {
+      console.log("didnt send because null");
+      return;
+    }
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(msg);
+    } else {
+      console.log("WebSocket not ready, state:", socket.readyState);
+    }
+  };
   // Initialize canvas and context
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,6 +51,7 @@ function DrawingBoard() {
     if (!ctxRef.current) return;
     isDrawing.current = true;
     const pos = getMousePos(e);
+    sendSafe(JSON.stringify({ x: pos.x, y: pos.y }));
     ctxRef.current.beginPath();
     ctxRef.current.moveTo(pos.x, pos.y);
   };
@@ -56,6 +70,25 @@ function DrawingBoard() {
   };
 
   useEffect(() => {
+    if (!socket) {
+      console.log("Socket not available yet");
+      return;
+    }
+
+    // Only add onopen if socket isn't already open
+    if (socket.readyState === WebSocket.CONNECTING) {
+      socket.onopen = () => {
+        socket.send("hello world from the drawing board");
+        console.log("Hello message sent");
+      };
+    } else if (socket.readyState === WebSocket.OPEN) {
+      // Socket is already open
+      socket.send("hello world from the drawing board");
+      console.log("Hello message sent (already open)");
+    }
+  }, [socket]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -70,21 +103,7 @@ function DrawingBoard() {
       canvas.removeEventListener("mouseup", stopDrawing);
       canvas.removeEventListener("mouseleave", stopDrawing);
     };
-  }, []);
-
-  useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080/ws");
-    ws.onopen = () => {
-      console.log("web socket opened");
-      ws.send("hello from the react frontend");
-    };
-
-    ws.onclose = () => console.log("closing");
-    return () => {
-      ws.close();
-    };
-  }, []);
-
+  }, [draw, startDrawing, stopDrawing]);
   return (
     <canvas
       ref={canvasRef}
