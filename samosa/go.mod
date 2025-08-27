@@ -7,6 +7,7 @@ toolchain go1.24.6
 require (
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/olahol/melody v1.3.0
 )
 

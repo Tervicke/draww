@@ -9,16 +9,23 @@ import { WebSocketProvider } from "./components/WebSocketContext.tsx";
 function App() {
   type GameState = "Lobby" | "GameRunning" | "GameOver";
 
+  const [token, setToken] = useState<String>("");
   const [gameState, changeState] = useState<GameState>("Lobby");
 
   function createRoom(userName: string): void {
     //send the create room post request which will send back the room ID and the token
     fetch("http://localhost:8080/createRoom", {
       method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        userName: userName,
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
+        setToken(data.token);
         changeState("GameRunning");
       })
       .catch((err) => console.error(err));
@@ -31,7 +38,7 @@ function App() {
   if (gameState == "GameRunning") {
     return (
       <WebSocketProvider>
-        <Game></Game>
+        <Game token={token}></Game>
       </WebSocketProvider>
     );
   }

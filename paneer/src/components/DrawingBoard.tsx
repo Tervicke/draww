@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, RefObject } from "react";
 import { useWebSocket } from "./WebSocketContext.tsx";
 
-function DrawingBoard() {
+function DrawingBoard({ token }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawing = useRef(false);
@@ -74,19 +74,22 @@ function DrawingBoard() {
       console.log("Socket not available yet");
       return;
     }
+    if (token === "") {
+      console.log("token not availiable yet");
+      return;
+    }
 
-    // Only add onopen if socket isn't already open
     if (socket.readyState === WebSocket.CONNECTING) {
+      // Only add onopen if socket isn't already open
       socket.onopen = () => {
-        socket.send("hello world from the drawing board");
-        console.log("Hello message sent");
+        socket.send(token);
+        console.log("token message sent");
       };
     } else if (socket.readyState === WebSocket.OPEN) {
-      // Socket is already open
-      socket.send("hello world from the drawing board");
-      console.log("Hello message sent (already open)");
+      socket.send(token);
+      console.log("token message sent");
     }
-  }, [socket]);
+  }, [socket, token]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -104,6 +107,7 @@ function DrawingBoard() {
       canvas.removeEventListener("mouseleave", stopDrawing);
     };
   }, [draw, startDrawing, stopDrawing]);
+
   return (
     <canvas
       ref={canvasRef}

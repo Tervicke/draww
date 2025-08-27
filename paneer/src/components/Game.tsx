@@ -2,14 +2,14 @@ import React from "react";
 import DrawingBoard from "./DrawingBoard.tsx";
 import { RefObject } from "react";
 
-function Game() {
+function Game({ token }) {
   return (
     <div>
       <h1>Draww</h1>
       <div style={styles.wrapper}>
         <div style={{ ...styles.container, ...styles.left }}>Left</div>
         <div style={{ ...styles.container, ...styles.center }}>
-          <DrawingBoard></DrawingBoard>
+          <DrawingBoard token={token}></DrawingBoard>
         </div>
         <div style={{ ...styles.container, ...styles.right }}>Right</div>
       </div>
