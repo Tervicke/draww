@@ -1,10 +1,9 @@
 package handlers
 
 import (
-	"time"
+	"samosa/auth"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 )
 
 type createRoomRequest struct{
@@ -19,22 +18,11 @@ func HandleCreateRoom(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "UNAUTHORIZED"})
 		return
 	}
+	tokenString , err := auth.CreateNewJwtToken(req.Username)	
 
-	//create the jwt token
-	expirationTime := time.Now().Add(24 * time.Hour)
-	t := jwt.NewWithClaims(jwt.SigningMethodHS256,
-
-		jwt.MapClaims{
-			"iss": "my-auth-server",
-			"sub": req.Username,
-			"exp": expirationTime.Unix(),
-		})
-
-	tokenString, err := t.SignedString([]byte("secret"))
-
-	if err != nil {
-		c.JSON(500, gin.H{"error": "couldnt generate token"})
-		return
+	if err != nil { //if error return with internal server error 500 
+		c.JSON(500 , "couldnt generate token")
+		return;
 	}
 
 	roomID := "testroom123"
