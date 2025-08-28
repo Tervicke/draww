@@ -52,6 +52,7 @@ func handleTokenMessage(s *melody.Session , token string){
 
 	Rooms[roomID] = append( Rooms[roomID] , s)
 	log.Printf("new member %s joined %s\n",Username , roomID)
+	s.Write([]byte("welcome to the room"))
 }
 
 //handle the new incoming messages and then fan them out to modular message handlers

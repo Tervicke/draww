@@ -11,6 +11,8 @@ function Game({ token }) {
       console.log("didnt send because null");
       return;
     }
+    //apply the sample socket close
+
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(msg);
     } else {
@@ -28,6 +30,10 @@ function Game({ token }) {
       console.log("token not availiable yet");
       return;
     }
+
+    socket.onmessage = (e) => {
+      console.log("got message: ", e.data);
+    };
 
     if (socket.readyState === WebSocket.CONNECTING) {
       // Only add onopen if socket isn't already open
