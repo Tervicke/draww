@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"samosa/auth"
 
 	"github.com/olahol/melody"
 )
 func WriteMelodyError(s *melody.Session , error string){
+	log.Printf("ERROR %s",error)
 	errordata := struct {
 		Type string `json:"type"`
 		Error string `json:"error"`
@@ -28,7 +30,13 @@ func WriteMelodyError(s *melody.Session , error string){
 
 //handles token message 
 func handleTokenMessage(s *melody.Session , token string){
-	fmt.Println(token);
+	//verify the token , if yes do nothing else send a error response 
+	claims , err := auth.VerifyJwtToken(token)
+	if err != nil {
+		WriteMelodyError(s , "Couldnt verify token");
+		return;
+	}
+	fmt.Println(claims);
 }
 
 //handle the new incoming messages and then fan them out to modular message handlers
