@@ -27,7 +27,7 @@ func CreateNewJwtToken(username string ) (string , error){
 	}
 	return tokenString , nil
 }
-func VerifyJwtToken(tokenString string) (*jwt.MapClaims, error){
+func VerifyJwtToken(tokenString string) (jwt.MapClaims, error){
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		  return secret,nil
     })
@@ -41,5 +41,5 @@ func VerifyJwtToken(tokenString string) (*jwt.MapClaims, error){
 	if !ok {
 		return nil , fmt.Errorf("failed to parse claims") 
 	}
-    return &claims, nil
+    return claims, nil
 }

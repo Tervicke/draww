@@ -2,15 +2,19 @@ package handlers
 
 import (
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	"samosa/auth"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
-type createRoomRequest struct{
-	Username string `json:"username"`
-}
+//shared state with melodyhandlers.go
+var (
+	UserRooms = make(map[string]string); //Username -> RoomID
+	UserRoomsMU sync.Mutex;
+)
 
 func GenerateRoomID() (string, error) {
 	const roomAlphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -24,6 +28,10 @@ func GenerateRoomID() (string, error) {
 		code[i] = roomAlphabet[n.Int64()]
 	}
 	return string(code), nil
+}
+
+type createRoomRequest struct{
+	Username string `json:"username"`
 }
 
 func HandleCreateRoom(c *gin.Context) {
@@ -46,5 +54,10 @@ func HandleCreateRoom(c *gin.Context) {
 		c.JSON(500 , gin.H{"error":"failed to generate a room ID"});
 		return;
 	}
+	fmt.Printf("New Room %s created\n",roomID)
 	c.JSON(200, gin.H{"roomID": roomID, "token": tokenString})
+	//add the user to the UserRoom
+	UserRoomsMU.Lock()
+	UserRooms[req.Username] = roomID
+	UserRoomsMU.Unlock()
 }

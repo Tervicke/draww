@@ -27,6 +27,10 @@ func WriteMelodyError(s *melody.Session , error string){
 	}
 	s.Close(); //strictly close the server incase of malicious payload
 }
+//shared state maybe?
+var (
+	Rooms = make(map[string][]*melody.Session) //roomID -> melody.Session
+)
 
 //handles token message 
 func handleTokenMessage(s *melody.Session , token string){
@@ -36,12 +40,22 @@ func handleTokenMessage(s *melody.Session , token string){
 		WriteMelodyError(s , "Couldnt verify token");
 		return;
 	}
-	fmt.Println(claims);
+	var Username string = claims["sub"].(string)
+
+	UserRoomsMU.Lock()
+	defer UserRoomsMU.Unlock()
+	roomID , ok := UserRooms[Username]   
+	if !ok{
+		WriteMelodyError(s , "server mismatch something is going terriblyw wrong");
+		return;
+	}
+
+	Rooms[roomID] = append( Rooms[roomID] , s)
+	log.Printf("new member %s joined %s\n",Username , roomID)
 }
 
 //handle the new incoming messages and then fan them out to modular message handlers
 func HandleNewMessage(s *melody.Session , msg []byte){
-	fmt.Println("message recieved" +string(msg))
 	var data interface{};
 	err := json.Unmarshal(msg,&data);
 	if err != nil {
