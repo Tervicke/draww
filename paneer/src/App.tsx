@@ -34,7 +34,23 @@ function App() {
   }
 
   function joinRoom(id: string, userName: string): void {
-    changeState("GameRunning");
+    fetch("http://localhost:8080/joinRoom", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        userName: userName,
+        roomID: id,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setToken(data.token);
+        setRoomID(id);
+        changeState("GameRunning");
+      })
+      .catch((err) => console.error(err));
   }
 
   if (gameState == "GameRunning") {

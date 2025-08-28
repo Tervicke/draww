@@ -26,6 +26,7 @@ func main(){
   }))
 
 	r.POST("/createRoom" , handlers.HandleCreateRoom)
+  	r.POST("/joinRoom", handlers.HandleJoinRoom)
 
 	r.GET("/ws" , func(c *gin.Context){
 		err := m.HandleRequest(c.Writer , c.Request)

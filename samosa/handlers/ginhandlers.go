@@ -66,7 +66,7 @@ func HandleCreateRoom(c *gin.Context) {
 	UserRoomsMU.Unlock()
 }
 
-func handleJoinRoom(c *gin.Context){
+func HandleJoinRoom(c *gin.Context){
 	var req joinRoomRequest		
 	err := c.ShouldBindBodyWithJSON(&req)
 	if err != nil {
@@ -91,5 +91,8 @@ func handleJoinRoom(c *gin.Context){
 		return;
 	}
 
+	UserRoomsMU.Lock()
+	UserRooms[req.Username] = req.RoomID
+	UserRoomsMU.Unlock()
 	c.JSON(200, gin.H{"token": tokenString})
 }
