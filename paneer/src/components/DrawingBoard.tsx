@@ -1,23 +1,15 @@
 import React, { useRef, useEffect, RefObject } from "react";
 import { useWebSocket } from "./WebSocketContext.tsx";
 
-function DrawingBoard({ token }) {
+type DrawingBoardProps = {
+  token: string;
+  socket: WebSocket | null;
+};
+
+function DrawingBoard({ token, socket }: DrawingBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawing = useRef(false);
-  const socket = useWebSocket();
-  //safe sending in the socket
-  const sendSafe = (msg: string) => {
-    if (!socket) {
-      console.log("didnt send because null");
-      return;
-    }
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(msg);
-    } else {
-      console.log("WebSocket not ready, state:", socket.readyState);
-    }
-  };
   // Initialize canvas and context
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,7 +43,7 @@ function DrawingBoard({ token }) {
     if (!ctxRef.current) return;
     isDrawing.current = true;
     const pos = getMousePos(e);
-    sendSafe(JSON.stringify({ x: pos.x, y: pos.y }));
+    // sendSafe(JSON.stringify({ x: pos.x, y: pos.y })); TODO
     ctxRef.current.beginPath();
     ctxRef.current.moveTo(pos.x, pos.y);
   };
@@ -59,7 +51,7 @@ function DrawingBoard({ token }) {
   const draw = (e: MouseEvent) => {
     if (!isDrawing.current || !ctxRef.current) return;
     const pos = getMousePos(e);
-    sendSafe(JSON.stringify({ x: pos.x, y: pos.y }));
+    // sendSafe(JSON.stringify({ x: pos.x, y: pos.y })); TODO:
     ctxRef.current.lineTo(pos.x, pos.y);
     ctxRef.current.stroke();
   };
@@ -67,32 +59,10 @@ function DrawingBoard({ token }) {
   const stopDrawing = (e) => {
     if (!ctxRef.current) return;
     const pos = getMousePos(e);
-    sendSafe(JSON.stringify({ x: pos.x, y: pos.y }));
+    // sendSafe(JSON.stringify({ x: pos.x, y: pos.y })); TODO:
     isDrawing.current = false;
     ctxRef.current.closePath();
   };
-
-  useEffect(() => {
-    if (!socket) {
-      console.log("Socket not available yet");
-      return;
-    }
-    if (token === "") {
-      console.log("token not availiable yet");
-      return;
-    }
-
-    if (socket.readyState === WebSocket.CONNECTING) {
-      // Only add onopen if socket isn't already open
-      socket.onopen = () => {
-        socket.send(JSON.stringify({ type: "token", token: token }));
-        console.log("token message sent");
-      };
-    } else if (socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: "token", token: token }));
-      console.log("token message sent");
-    }
-  }, [socket, token]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
