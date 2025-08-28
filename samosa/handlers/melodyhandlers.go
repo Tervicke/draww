@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"samosa/auth"
+	"sync"
 
 	"github.com/olahol/melody"
 )
@@ -30,6 +31,7 @@ func WriteMelodyError(s *melody.Session , error string){
 //shared state maybe?
 var (
 	Rooms = make(map[string][]*melody.Session) //roomID -> melody.Session
+	RoomsMu sync.Mutex;
 )
 
 //handles token message 
@@ -50,6 +52,8 @@ func handleTokenMessage(s *melody.Session , token string){
 		return;
 	}
 
+	RoomsMu.Lock()
+	defer RoomsMu.Unlock()
 	Rooms[roomID] = append( Rooms[roomID] , s)
 	log.Printf("new member %s joined %s\n",Username , roomID)
 	s.Write([]byte("welcome to the room"))

@@ -33,6 +33,10 @@ func GenerateRoomID() (string, error) {
 type createRoomRequest struct{
 	Username string `json:"username"`
 }
+type joinRoomRequest struct {
+	Username string `json:"username"`
+	RoomID string `json:"roomID"`
+}
 
 func HandleCreateRoom(c *gin.Context) {
 
@@ -60,4 +64,32 @@ func HandleCreateRoom(c *gin.Context) {
 	UserRoomsMU.Lock()
 	UserRooms[req.Username] = roomID
 	UserRoomsMU.Unlock()
+}
+
+func handleJoinRoom(c *gin.Context){
+	var req joinRoomRequest		
+	err := c.ShouldBindBodyWithJSON(&req)
+	if err != nil {
+		c.JSON(400 , gin.H{"error":"UNAUTHORIZED"})
+		return;
+	}
+	//verify if the roomID is accurate and does infact exist
+
+	RoomsMu.Lock()
+	 _ , ok := Rooms[req.RoomID] ;
+	RoomsMu.Unlock()
+
+	if !ok {
+		c.JSON(400 , gin.H{"error":"no room exists"})
+		return;
+	}
+
+	tokenString , err := auth.CreateNewJwtToken(req.Username)	
+
+	if err != nil { //if error return with internal server error 500 
+		c.JSON(500 , "couldnt generate token")
+		return;
+	}
+
+	c.JSON(200, gin.H{"token": tokenString})
 }
