@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import DrawingBoard from "./DrawingBoard.tsx";
 import { useWebSocket } from "./WebSocketContext.tsx";
 
-function Game({ token }) {
+function Game({ token, roomID }) {
   const socket = useWebSocket();
 
   //safe sending in the socket
@@ -50,6 +50,7 @@ function Game({ token }) {
   return (
     <div>
       <h1>Draww</h1>
+      <div>Room Code: {roomID}</div>
       <div style={styles.wrapper}>
         <div style={{ ...styles.container, ...styles.left }}>Left</div>
         <div style={{ ...styles.container, ...styles.center }}>

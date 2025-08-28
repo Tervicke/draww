@@ -11,6 +11,7 @@ function App() {
 
   const [token, setToken] = useState<String>("");
   const [gameState, changeState] = useState<GameState>("Lobby");
+  const [roomID, setRoomID] = useState<string>("");
 
   function createRoom(userName: string): void {
     //send the create room post request which will send back the room ID and the token
@@ -26,6 +27,7 @@ function App() {
       .then((res) => res.json())
       .then((data) => {
         setToken(data.token);
+        setRoomID(data.roomID);
         changeState("GameRunning");
       })
       .catch((err) => console.error(err));
@@ -38,7 +40,7 @@ function App() {
   if (gameState == "GameRunning") {
     return (
       <WebSocketProvider>
-        <Game token={token}></Game>
+        <Game token={token} roomID={roomID}></Game>
       </WebSocketProvider>
     );
   }
