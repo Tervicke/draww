@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"math/big"
 	"samosa/auth"
 
 	"github.com/gin-gonic/gin"
@@ -8,6 +10,20 @@ import (
 
 type createRoomRequest struct{
 	Username string `json:"username"`
+}
+
+func GenerateRoomID() (string, error) {
+	const roomAlphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+	const roomCodeLength = 6                      
+	code := make([]byte, roomCodeLength)
+	for i := range code {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(roomAlphabet))))
+		if err != nil {
+			return "", err
+		}
+		code[i] = roomAlphabet[n.Int64()]
+	}
+	return string(code), nil
 }
 
 func HandleCreateRoom(c *gin.Context) {
@@ -25,7 +41,10 @@ func HandleCreateRoom(c *gin.Context) {
 		return;
 	}
 
-	roomID := "testroom123"
-
+	roomID , err := GenerateRoomID();
+	if err != nil {
+		c.JSON(500 , gin.H{"error":"failed to generate a room ID"});
+		return;
+	}
 	c.JSON(200, gin.H{"roomID": roomID, "token": tokenString})
 }
