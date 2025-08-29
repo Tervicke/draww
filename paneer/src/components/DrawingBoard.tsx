@@ -22,7 +22,12 @@ function drawStroke(ctx: CanvasRenderingContext2D, stroke: drawingData) {
   }
 }
 
-function DrawingBoard({ token, socket, drawdata }: DrawingBoardProps) {
+function DrawingBoard({
+  token,
+  socket,
+  drawdata,
+  isArtist,
+}: DrawingBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawing = useRef(false);
@@ -112,11 +117,13 @@ function DrawingBoard({ token, socket, drawdata }: DrawingBoardProps) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    canvas.addEventListener("mousedown", startDrawing);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", stopDrawing);
-    canvas.addEventListener("mouseleave", stopDrawing);
+    if (isArtist) {
+      //only add event listeners if the user is the artist
+      canvas.addEventListener("mousedown", startDrawing);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDrawing);
+      canvas.addEventListener("mouseleave", stopDrawing);
+    }
 
     return () => {
       canvas.removeEventListener("mousedown", startDrawing);
@@ -124,7 +131,7 @@ function DrawingBoard({ token, socket, drawdata }: DrawingBoardProps) {
       canvas.removeEventListener("mouseup", stopDrawing);
       canvas.removeEventListener("mouseleave", stopDrawing);
     };
-  }, [draw, startDrawing, stopDrawing]);
+  }, [draw, startDrawing, stopDrawing, isArtist]);
 
   return (
     <canvas
