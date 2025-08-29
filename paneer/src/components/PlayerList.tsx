@@ -1,5 +1,5 @@
 import React from "react";
-import { PlayersListProps } from "./types.ts";
+import { PlayersListProps } from "../types";
 
 const PlayersList: React.FC<PlayersListProps> = ({ players }) => {
   return (

@@ -28,14 +28,19 @@ func WriteMelodyError(s *melody.Session , error string){
 	}
 	s.Close(); //strictly close the server incase of malicious payload
 }
+// shared state to get the userName by using the session
+var (
+	UserSession = make(map[*melody.Session]string);
+	UserSessionMu sync.Mutex;
+)
+
 //shared state maybe?
 var (
-	Rooms = make(map[string][]*melody.Session) //roomID -> melody.Session
+	Rooms = make(map[string][]*melody.Session) //roomID -> []melody.Session
 	RoomsMu sync.Mutex;
 )
 
 //Players -> records the data in the player struct and map to keep the list of players right??? , I hate myself actually 
-
 var (
 	RoomPlayers = make(map[string][]Player)
 	RoomPlayersMu sync.Mutex
@@ -107,6 +112,10 @@ func handleTokenMessage(s *melody.Session , token string){
 	for _ , conn := range(currentRoom){
 		conn.Write([]byte(jsondata))
 	}
+	//add the player in userSession to to get players username by using the session
+	UserSessionMu.Lock()
+	UserSession[s] = Username
+	UserSessionMu.Unlock()
 
 	log.Printf("new member %s joined %s\n",Username , roomID)
 }
@@ -145,5 +154,48 @@ func HandleNewMessage(s *melody.Session , msg []byte){
 			return;
 		}
 		handleTokenMessage(s,token)
+	case "draw":
+		handleDrawMessage(s , msg)
+		fmt.Println(m);
 	}
+}
+
+func handleDrawMessage(s *melody.Session, msg []byte) { 
+	//get the username
+	UserName , err := getUserNameBySession(s);
+	if err != nil {
+		WriteMelodyError(s , "internal server error")
+	}
+	RoomId , err := getRoomIdByUserName(UserName);
+	
+	RoomsMu.Lock()
+	currentRoom := Rooms[RoomId]
+	RoomsMu.Unlock()
+
+	for _ , conn := range(currentRoom) {
+		if conn != s {
+			conn.Write(msg)
+		}
+	}
+
+}
+
+func getUserNameBySession(s *melody.Session) (string , error){
+	UserSessionMu.Lock()
+	defer UserSessionMu.Unlock()
+	name , ok := UserSession[s];
+	if !ok {
+		return "", fmt.Errorf("username Not found")
+	}
+	return name , nil
+}
+
+func getRoomIdByUserName(username string) (string , error){
+	UserRoomsMU.Lock()
+	defer UserRoomsMU.Unlock()
+	id , ok := UserRooms[username]
+	if !ok {
+		return "" , fmt.Errorf("room not found")
+	}
+	return id , nil 
 }

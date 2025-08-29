@@ -1,15 +1,32 @@
 import React, { useRef, useEffect, RefObject } from "react";
 import { useWebSocket } from "./WebSocketContext.tsx";
+import { DrawingBoardProps, drawingData } from "../types.ts";
 
-type DrawingBoardProps = {
-  token: string;
-  socket: WebSocket | null;
-};
+function sendSafe(socket: WebSocket | null, msg: drawingData) {
+  if (socket && socket.readyState == WebSocket.OPEN) {
+    socket.send(JSON.stringify(msg));
+    console.log("sent some drawing data");
+  }
+}
 
-function DrawingBoard({ token, socket }: DrawingBoardProps) {
+function drawStroke(ctx: CanvasRenderingContext2D, stroke: drawingData) {
+  console.log("drawing the stroke");
+  if (stroke.event === "start") {
+    ctx.beginPath();
+    ctx.moveTo(stroke.x, stroke.y);
+  } else if (stroke.event === "move") {
+    ctx.lineTo(stroke.x, stroke.y);
+    ctx.stroke();
+  } else if (stroke.event === "end") {
+    ctx.closePath();
+  }
+}
+
+function DrawingBoard({ token, socket, drawdata }: DrawingBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawing = useRef(false);
+
   // Initialize canvas and context
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -28,6 +45,17 @@ function DrawingBoard({ token, socket }: DrawingBoardProps) {
     ctxRef.current = ctx;
   }, []);
 
+  //update the data
+  useEffect(() => {
+    console.log("use effect working");
+    if (!drawdata) {
+      return;
+    }
+    if (ctxRef.current) {
+      drawStroke(ctxRef.current, drawdata);
+    }
+  }, [drawdata]);
+
   //event handlers
   const getMousePos = (e: MouseEvent) => {
     const canvas = canvasRef.current;
@@ -43,7 +71,12 @@ function DrawingBoard({ token, socket }: DrawingBoardProps) {
     if (!ctxRef.current) return;
     isDrawing.current = true;
     const pos = getMousePos(e);
-    // sendSafe(JSON.stringify({ x: pos.x, y: pos.y })); TODO
+    sendSafe(socket, {
+      type: "draw",
+      x: pos.x,
+      y: pos.y,
+      event: "start",
+    });
     ctxRef.current.beginPath();
     ctxRef.current.moveTo(pos.x, pos.y);
   };
@@ -51,15 +84,27 @@ function DrawingBoard({ token, socket }: DrawingBoardProps) {
   const draw = (e: MouseEvent) => {
     if (!isDrawing.current || !ctxRef.current) return;
     const pos = getMousePos(e);
-    // sendSafe(JSON.stringify({ x: pos.x, y: pos.y })); TODO:
+
+    sendSafe(socket, {
+      type: "draw",
+      x: pos.x,
+      y: pos.y,
+      event: "move",
+    });
+
     ctxRef.current.lineTo(pos.x, pos.y);
     ctxRef.current.stroke();
   };
 
-  const stopDrawing = (e) => {
+  const stopDrawing = (e: MouseEvent) => {
     if (!ctxRef.current) return;
     const pos = getMousePos(e);
-    // sendSafe(JSON.stringify({ x: pos.x, y: pos.y })); TODO:
+    sendSafe(socket, {
+      type: "draw",
+      x: pos.x,
+      y: pos.y,
+      event: "end",
+    });
     isDrawing.current = false;
     ctxRef.current.closePath();
   };

@@ -14,6 +14,7 @@ import (
 var (
 	UserRooms = make(map[string]string); //Username -> RoomID
 	UserRoomsMU sync.Mutex;
+
 )
 
 func GenerateRoomID() (string, error) {

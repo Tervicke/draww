@@ -7,3 +7,16 @@ export type Player = {
 export type PlayersListProps = {
   players: Player[];
 };
+
+export type drawingData = {
+  type: "draw";
+  x: number;
+  y: number;
+  event: "start" | "move" | "end";
+};
+
+export type DrawingBoardProps = {
+  token: string;
+  socket: WebSocket | null;
+  drawdata: drawingData | null;
+};
