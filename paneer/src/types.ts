@@ -1,9 +1,9 @@
-type Player = {
+export type Player = {
   username: string;
   score?: number;
   isTurn?: boolean;
 };
 
-type PlayersListProps = {
+export type PlayersListProps = {
   players: Player[];
 };
