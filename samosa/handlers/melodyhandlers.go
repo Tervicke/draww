@@ -34,6 +34,24 @@ var (
 	RoomsMu sync.Mutex;
 )
 
+//Players -> records the data in the player struct and map to keep the list of players right??? , I hate myself actually 
+
+var (
+	RoomPlayers = make(map[string][]Player)
+	RoomPlayersMu sync.Mutex
+)
+
+type Player struct{
+	Username string `json:"username"`
+	Score int `json:"score"`
+	IsTurn bool `json:"isTurn"`
+}
+
+type playersUpdateMessage struct{
+	Type string `json:"type"`
+	Data []Player `json:"players"`
+}
+
 //handles token message 
 func handleTokenMessage(s *melody.Session , token string){
 	//verify the token , if yes do nothing else send a error response 
@@ -53,10 +71,44 @@ func handleTokenMessage(s *melody.Session , token string){
 	}
 
 	RoomsMu.Lock()
-	defer RoomsMu.Unlock()
 	Rooms[roomID] = append( Rooms[roomID] , s)
+	currentRoom := Rooms[roomID]
+	defer RoomsMu.Unlock()
+
+	//first add the player to the RoomPlayers map and then loop over it and send the new data 
+	player := Player{
+        Username: Username,
+        Score:    0,
+        IsTurn:   false,
+    }
+
+	RoomPlayersMu.Lock();
+	RoomPlayers[roomID] = append(RoomPlayers[roomID] , player);
+
+	var players []Player = make([]Player , 0);
+
+	for _ , p := range(RoomPlayers[roomID]) {
+		players = append(players , p);
+	}
+
+	RoomPlayersMu.Unlock();
+
+	data := playersUpdateMessage{
+		"players_update",
+		players,
+	}
+
+	jsondata , err := json.Marshal(data)
+
+	if err != nil {
+		WriteMelodyError(s , "error failed to marshal player data , internal server error");
+	}
+
+	for _ , conn := range(currentRoom){
+		conn.Write([]byte(jsondata))
+	}
+
 	log.Printf("new member %s joined %s\n",Username , roomID)
-	s.Write([]byte("welcome to the room"))
 }
 
 //handle the new incoming messages and then fan them out to modular message handlers

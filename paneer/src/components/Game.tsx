@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import DrawingBoard from "./DrawingBoard.tsx";
 import { useWebSocket } from "./WebSocketContext.tsx";
+import PlayersList from "./PlayerList.tsx";
 
 function Game({ token, roomID }) {
   const socket = useWebSocket();
-
+  const [players, updatePlayers] = useState<Player[]>([]);
   //safe sending in the socket
   const sendSafe = (msg: string) => {
     if (!socket) {
@@ -31,8 +32,13 @@ function Game({ token, roomID }) {
       return;
     }
 
-    socket.onmessage = (e) => {
-      console.log("got message: ", e.data);
+    socket.onmessage = (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      console.log(data.players);
+      if (data.type == "players_update") {
+        const players = data.players as Player[];
+        updatePlayers(players);
+      }
     };
 
     if (socket.readyState === WebSocket.CONNECTING) {
@@ -52,7 +58,9 @@ function Game({ token, roomID }) {
       <h1>Draww</h1>
       <div>Room Code: {roomID}</div>
       <div style={styles.wrapper}>
-        <div style={{ ...styles.container, ...styles.left }}>Left</div>
+        <div style={{ ...styles.container, ...styles.left }}>
+          <PlayersList players={players}></PlayersList>
+        </div>
         <div style={{ ...styles.container, ...styles.center }}>
           <DrawingBoard token={token} socket={socket}></DrawingBoard>
         </div>
