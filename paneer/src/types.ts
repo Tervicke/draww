@@ -19,4 +19,5 @@ export type DrawingBoardProps = {
   token: string;
   socket: WebSocket | null;
   drawdata: drawingData | null;
+  isArtist: boolean;
 };

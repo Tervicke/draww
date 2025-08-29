@@ -8,6 +8,8 @@ function Game({ token, roomID }) {
   const socket = useWebSocket();
   const [players, updatePlayers] = useState<Player[]>([]);
   const [drawdata, updateDrawData] = useState<drawingData | null>(null);
+  const [isArtist, setIsArtist] = useState<boolean>(false);
+
   //safe sending in the socket
   const sendSafe = (msg: string) => {
     if (!socket) {
@@ -45,6 +47,30 @@ function Game({ token, roomID }) {
         const newdrawdata = data as drawingData;
         updateDrawData(newdrawdata);
       }
+      if (data.type == "game_start") {
+        console.log("game started");
+        if (data.artist == "yes") {
+          //prompt the user to enter a word to draw and send it to the server and also dont use default prompt because it may get blocked by chrome modern day browsers
+          const word = prompt("You are the artist! Enter a word to draw:");
+          if (word) {
+            sendSafe(JSON.stringify({ type: "new_word", word: word }));
+          } else {
+            alert("You must enter a word! You will be assigned a random word.");
+            sendSafe(JSON.stringify({ type: "random_word", word: "-" }));
+          }
+          setIsArtist(true);
+          alert("You are the artist! Start drawing!");
+        } else {
+          console.log("you are not the artist");
+          setIsArtist(false);
+          alert("You are not the artist! Start guessing!");
+        }
+        //start the timer for 3 minutes by using the endtime from the server by adding a component on the top right corner
+        const endtime = data.endtime as number;
+        const currentTime = Math.floor(Date.now() / 1000);
+        const duration = endtime - currentTime;
+        console.log("Game duration (seconds):", duration);
+      }
     };
 
     if (socket.readyState === WebSocket.CONNECTING) {
@@ -72,6 +98,7 @@ function Game({ token, roomID }) {
             token={token}
             socket={socket}
             drawdata={drawdata}
+            isArtist={isArtist}
           ></DrawingBoard>
         </div>
         <div style={{ ...styles.container, ...styles.right }}>Right</div>
