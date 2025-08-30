@@ -2,13 +2,20 @@ import React, { useEffect, useState } from "react";
 import DrawingBoard from "./DrawingBoard.tsx";
 import { useWebSocket } from "./WebSocketContext.tsx";
 import PlayersList from "./PlayerList.tsx";
-import { drawingData, Player } from "../types.ts";
-
+import { drawingData, Player, StartGameMessage } from "../types.ts";
+import WordSelection from "./WordSelection.tsx";
 function Game({ token, roomID }) {
   const socket = useWebSocket();
   const [players, updatePlayers] = useState<Player[]>([]);
   const [drawdata, updateDrawData] = useState<drawingData | null>(null);
   const [isArtist, setIsArtist] = useState<boolean>(false);
+  const [words, setWords] = useState<string[]>([]); //setwords if the current player is artist and his word of choices
+
+  function sendSelectedWord(word: string) {
+    alert("You selected: " + word);
+    setWords([]); //clear the words after selecting so that it stops rendering
+    sendSafe(JSON.stringify({ type: "new_word", word: word }));
+  }
 
   //safe sending in the socket
   const sendSafe = (msg: string) => {
@@ -25,6 +32,11 @@ function Game({ token, roomID }) {
     }
   };
 
+  useEffect(() => {
+    if (words && isArtist) {
+    }
+  }, [words, isArtist]);
+
   //send the initial token for verification on the server end
   useEffect(() => {
     if (!socket) {
@@ -39,31 +51,32 @@ function Game({ token, roomID }) {
     socket.onmessage = (e: MessageEvent) => {
       const data = JSON.parse(e.data);
       console.log(data);
+      //update players
       if (data.type == "players_update") {
         const players = data.players as Player[];
         updatePlayers(players);
       }
+
+      //drawing data
       if (data.type == "draw") {
         const newdrawdata = data as drawingData;
         updateDrawData(newdrawdata);
       }
+
+      //game start data
       if (data.type == "game_start") {
-        console.log("game started");
-        if (data.artist) {
-          //prompt the user to enter a word to draw and send it to the server and also dont use default prompt because it may get blocked by chrome modern day browsers
-          const word = prompt("You are the artist! Enter a word to draw:");
-          if (word) {
-            sendSafe(JSON.stringify({ type: "new_word", word: word }));
-          } else {
-            alert("You must enter a word! You will be assigned a random word.");
-            sendSafe(JSON.stringify({ type: "random_word", word: "-" }));
-          }
-          setIsArtist(data.isArtist);
-        } else {
-          console.log(data.Name + "is choosing a word");
-          alert(data.Name + "is choosing a word");
-          setIsArtist(data.isArtist);
+        const gameData = data as StartGameMessage;
+        console.log("game data is " + gameData);
+        console.log(gameData);
+        setIsArtist(gameData.artist);
+        setWords(gameData.words ? [...gameData.words] : []);
+
+        //show an alert if the user is not the artist that the artist is choosing a word
+        if (!gameData.artist) {
+          console.log(gameData.name + "is choosing a word");
+          alert(gameData.name + " is choosing a word");
         }
+
         //start the timer for 3 minutes by using the endtime from the server by adding a component on the top right corner
         const endtime = data.endtime as number;
         const currentTime = Math.floor(Date.now() / 1000);
@@ -88,6 +101,11 @@ function Game({ token, roomID }) {
     <div>
       <h1>Draww</h1>
       <div>Room Code: {roomID}</div>
+      <WordSelection
+        words={words}
+        isArtist={isArtist}
+        onSelect={sendSelectedWord}
+      ></WordSelection>
       <div style={styles.wrapper}>
         <div style={{ ...styles.container, ...styles.left }}>
           <PlayersList players={players}></PlayersList>

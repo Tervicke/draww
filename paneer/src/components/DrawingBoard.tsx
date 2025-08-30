@@ -117,6 +117,7 @@ function DrawingBoard({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    console.log("isArtist-" + isArtist);
     if (isArtist) {
       //only add event listeners if the user is the artist
       canvas.addEventListener("mousedown", startDrawing);

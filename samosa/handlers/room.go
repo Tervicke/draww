@@ -9,6 +9,15 @@ import (
 
 	"github.com/olahol/melody"
 )
+func getRandomWord() string {
+	//easy words for skribbleio like game list of strings
+	words := []string{	
+		"apple", "banana", "cat", "dog", "elephant", "flower", "guitar", "house", "ice cream", "jungle",
+		"kite", "lion", "mountain", "notebook", "ocean", "piano", "queen", "rainbow", "sun", "tree",
+		"umbrella", "violin", "whale", "xylophone", "yacht", "zebra",
+	}
+	return words[rand.Intn(len(words))]
+}
 
 type Room struct {
 	ID          string
@@ -36,6 +45,7 @@ func StartRoom(r *Room){
 		Endtime int64 `json:"endtime"`
 		Artist  bool `json:"artist"` //yes or no only
 		Name  string `json:"name"` //artist name
+		Words []string `json:"words,omitempty"` //only for the artist
 	}
 
 	// Notify all players about the game start and the artist	
@@ -54,6 +64,7 @@ func StartRoom(r *Room){
 				Endtime: time.Now().Add(3 * time.Minute).Unix(), // e.g., game lasts 3 minutes
 				Artist:  true,
 				Name: Name, //get the artist name
+				Words: []string{getRandomWord(), getRandomWord(), getRandomWord()}, //send 3 random words to choose from
 			}
 		} else {
 			// Notify other players

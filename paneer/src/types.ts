@@ -21,3 +21,17 @@ export type DrawingBoardProps = {
   drawdata: drawingData | null;
   isArtist: boolean;
 };
+
+export type StartGameMessage = {
+  type: string; // e.g., "game_start"
+  endtime: number; // Unix timestamp in seconds
+  artist: boolean; // true if the recipient is the artist, false otherwise
+  name: string; // artist's name
+  words?: string[]; // list of words for the artist to choose from
+};
+
+export type WordselectionProps = {
+  words: string[] | null;
+  isArtist: boolean;
+  onSelect: (word: string) => void;
+};
