@@ -10,10 +10,11 @@ function Game({ token, roomID }) {
   const [drawdata, updateDrawData] = useState<drawingData | null>(null);
   const [isArtist, setIsArtist] = useState<boolean>(false);
   const [words, setWords] = useState<string[]>([]); //setwords if the current player is artist and his word of choices
+  const [selectword, setSelectedWord] = useState<string>("");
 
   function sendSelectedWord(word: string) {
-    alert("You selected: " + word);
     setWords([]); //clear the words after selecting so that it stops rendering
+    setSelectedWord(word);
     sendSafe(JSON.stringify({ type: "new_word", word: word }));
   }
 
@@ -101,6 +102,7 @@ function Game({ token, roomID }) {
     <div>
       <h1>Draww</h1>
       <div>Room Code: {roomID}</div>
+      <div> {selectword}</div>
       <WordSelection
         words={words}
         isArtist={isArtist}
