@@ -49,7 +49,7 @@ function Game({ token, roomID }) {
       }
       if (data.type == "game_start") {
         console.log("game started");
-        if (data.artist == "yes") {
+        if (data.artist) {
           //prompt the user to enter a word to draw and send it to the server and also dont use default prompt because it may get blocked by chrome modern day browsers
           const word = prompt("You are the artist! Enter a word to draw:");
           if (word) {
@@ -58,12 +58,11 @@ function Game({ token, roomID }) {
             alert("You must enter a word! You will be assigned a random word.");
             sendSafe(JSON.stringify({ type: "random_word", word: "-" }));
           }
-          setIsArtist(true);
-          alert("You are the artist! Start drawing!");
+          setIsArtist(data.isArtist);
         } else {
-          console.log("you are not the artist");
-          setIsArtist(false);
-          alert("You are not the artist! Start guessing!");
+          console.log(data.Name + "is choosing a word");
+          alert(data.Name + "is choosing a word");
+          setIsArtist(data.isArtist);
         }
         //start the timer for 3 minutes by using the endtime from the server by adding a component on the top right corner
         const endtime = data.endtime as number;

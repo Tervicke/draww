@@ -14,7 +14,6 @@ import (
 var (
 	UserRooms = make(map[string]string); //Username -> RoomID
 	UserRoomsMU sync.Mutex;
-
 )
 
 func GenerateRoomID() (string, error) {
@@ -69,26 +68,31 @@ func HandleCreateRoom(c *gin.Context) {
 
 func HandleJoinRoom(c *gin.Context){
 	var req joinRoomRequest		
-	err := c.ShouldBindBodyWithJSON(&req)
+	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(400 , gin.H{"error":"UNAUTHORIZED"})
+		fmt.Println("UNAUTHORIZED");
 		return;
 	}
-	//verify if the roomID is accurate and does infact exist
 
+	//verify if the roomID is accurate and does infact exist
 	RoomsMu.Lock()
-	 _ , ok := Rooms[req.RoomID] ;
+	_ , ok := Rooms[req.RoomID] ;
 	RoomsMu.Unlock()
+
+	fmt.Println("ok", ok)
 
 	if !ok {
 		c.JSON(400 , gin.H{"error":"no room exists"})
+		fmt.Println("no room exists");
 		return;
 	}
 
-	tokenString , err := auth.CreateNewJwtToken(req.Username)	
+	tokenString, err := auth.CreateNewJwtToken(req.Username)
 
 	if err != nil { //if error return with internal server error 500 
 		c.JSON(500 , "couldnt generate token")
+		fmt.Println("couldnt generate token");
 		return;
 	}
 

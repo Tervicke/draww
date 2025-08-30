@@ -34,6 +34,7 @@ function App() {
   }
 
   function joinRoom(id: string, userName: string): void {
+    console.log("joining room" + id);
     fetch("http://localhost:8080/joinRoom", {
       method: "POST",
       headers: {
@@ -49,6 +50,7 @@ function App() {
         setToken(data.token);
         setRoomID(id);
         changeState("GameRunning");
+        console.log(data);
       })
       .catch((err) => console.error(err));
   }

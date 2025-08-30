@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"samosa/auth"
 	"sync"
 
 	"github.com/olahol/melody"
@@ -41,11 +40,6 @@ var (
 )
 
 //Players -> records the data in the player struct and map to keep the list of players right??? , I hate myself actually 
-var (
-	RoomPlayers = make(map[string][]Player)
-	RoomPlayersMu sync.Mutex
-)
-
 type Player struct{
 	Username string `json:"username"`
 	Score int `json:"score"`
@@ -58,77 +52,6 @@ type playersUpdateMessage struct{
 }
 
 //handles token message 
-func handleTokenMessage(s *melody.Session , token string){
-	//verify the token , if yes do nothing else send a error response 
-	claims , err := auth.VerifyJwtToken(token)
-	if err != nil {
-		WriteMelodyError(s , "Couldnt verify token");
-		return;
-	}
-	var Username string = claims["sub"].(string)
-
-	UserRoomsMU.Lock()
-	defer UserRoomsMU.Unlock()
-	roomID , ok := UserRooms[Username]   
-	if !ok{
-		WriteMelodyError(s , "server mismatch something is going terriblyw wrong");
-		return;
-	}
-
-	RoomsMu.Lock()
-	room := Rooms[roomID]
-	if room == nil {
-		room = &Room{
-			ID:          roomID,
-			Connections: []*melody.Session{},
-			State:       "waiting",
-		}
-		Rooms[roomID] = room;
-	}
-	room.Connections = append(room.Connections, s)
-	if(len(room.Connections) >= 2){
-		room.State = "in-game";
-		StartRoom(room);
-	}
-	defer RoomsMu.Unlock()
-
-	//first add the player to the RoomPlayers map and then loop over it and send the new data 
-	player := Player{
-        Username: Username,
-        Score:    0,
-        IsTurn:   false,
-    }
-
-	RoomPlayersMu.Lock();
-	RoomPlayers[roomID] = append(RoomPlayers[roomID] , player);
-
-	var players []Player = make([]Player , 0);
-
-	for _ , p := range(RoomPlayers[roomID]) {
-		players = append(players , p);
-	}
-	RoomPlayersMu.Unlock();
-	data := playersUpdateMessage{
-		"players_update",
-		players,
-	}
-
-	jsondata , err := json.Marshal(data)
-
-	if err != nil {
-		WriteMelodyError(s , "error failed to marshal player data , internal server error");
-	}
-
-	for _ , conn := range(room.Connections){
-		conn.Write([]byte(jsondata))
-	}
-	//add the player in userSession to to get players username by using the session
-	UserSessionMu.Lock()
-	UserSession[s] = Username
-	UserSessionMu.Unlock()
-
-	log.Printf("new member %s joined %s\n",Username , roomID)
-}
 
 //handle the new incoming messages and then fan them out to modular message handlers
 func HandleNewMessage(s *melody.Session , msg []byte){
