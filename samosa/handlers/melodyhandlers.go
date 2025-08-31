@@ -108,62 +108,6 @@ func HandleNewMessage(s *melody.Session , msg []byte){
 
 }
 
-func handleNewWordMessage(s *melody.Session, word string) {
-	//check if the user is the artist
-	UserName , err := getUserNameBySession(s)
-	if err != nil {
-		WriteMelodyError(s , "internal server error")
-	}
-	RoomId , err := getRoomIdByUserName(UserName);
-	if err != nil {
-		WriteMelodyError(s , "internal server error")
-	}
-
-	RoomsMu.Lock()
-	currentRoom := Rooms[RoomId]
-
-	fmt.Println("DETAILS" , currentRoom.artist , s)	
-	if currentRoom.artist != s {
-		fmt.Println(currentRoom.ID);
-		WriteMelodyError(s , "only the artist can change the word")
-		return;
-	}
-
-	RoomsMu.Unlock()
-
-	fmt.Println(word)
-
-	//broadcast the new word all the players without the artist and the word is not complete but only 20% of the word	
-	type newWordMessage struct{
-		Type string `json:"type"`
-		Word string `json:"word"`
-	}
-	
-	maskedWord := ""
-	for i := 0; i < len(word); i++ {
-		if i < len(word)/5 {
-			maskedWord += string(word[i])
-		} else {
-			maskedWord += "_"
-		}
-	}
-	
-	data := newWordMessage{
-		Type: "new_word",
-		Word: maskedWord,
-	}
-	jsondata , err := json.Marshal(data)
-	if err != nil {
-		WriteMelodyError(s , "internal server error")
-		return;
-	}
-
-	for _ , conn := range(currentRoom.Connections) {
-		if conn != s {
-			conn.Write(jsondata)
-		}
-	}
-}
 
 func handleDrawMessage(s *melody.Session, msg []byte) { 
 	//get the username

@@ -67,14 +67,12 @@ function Game({ token, roomID }) {
       //game start data
       if (data.type == "game_start") {
         const gameData = data as StartGameMessage;
-        console.log("game data is " + gameData);
         console.log(gameData);
         setIsArtist(gameData.artist);
         setWords(gameData.words ? [...gameData.words] : []);
 
         //show an alert if the user is not the artist that the artist is choosing a word
         if (!gameData.artist) {
-          console.log(gameData.name + "is choosing a word");
           alert(gameData.name + " is choosing a word");
         }
 
@@ -83,6 +81,11 @@ function Game({ token, roomID }) {
         const currentTime = Math.floor(Date.now() / 1000);
         const duration = endtime - currentTime;
         console.log("Game duration (seconds):", duration);
+      }
+
+      if (data.type == "masked_word") {
+        const word = data.word as string;
+        setSelectedWord(word);
       }
     };
 
