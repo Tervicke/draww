@@ -2,11 +2,17 @@ import React, { useEffect, useState } from "react";
 import DrawingBoard from "./DrawingBoard.tsx";
 import { useWebSocket } from "./WebSocketContext.tsx";
 import PlayersList from "./PlayerList.tsx";
-import { drawingData, Message, Player, StartGameMessage } from "../types.ts";
+import type {
+  drawingData,
+  GameProps,
+  Message,
+  Player,
+  StartGameMessage,
+} from "../types.ts";
 import WordSelection from "./WordSelection.tsx";
 import ChatSection from "./ChatSection.tsx";
 
-function Game({ token, roomID }) {
+function Game({ token, roomID }: GameProps) {
   const socket = useWebSocket();
   const [players, updatePlayers] = useState<Player[]>([]);
   const [drawdata, updateDrawData] = useState<drawingData | null>(null);

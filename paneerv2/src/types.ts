@@ -42,3 +42,13 @@ export type Message = {
   text: string;
   isSelf?: boolean; // highlight if it's the current user
 };
+
+export type GameProps = {
+  token: string;
+  roomID: string;
+};
+
+export type LobbyProps = {
+  onJoin: (roomCode: string, userName: string) => void;
+  onCreate: (userName: string) => void;
+};
