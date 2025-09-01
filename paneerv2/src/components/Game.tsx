@@ -27,7 +27,8 @@ function Game({ token, roomID }: GameProps) {
       ...prevMessages,
       { id: Date.now().toString(), sender: "You", text: text, isSelf: true },
     ]);
-    console.log("sending message:", text);
+    const data = { type: "guess", word: text };
+    sendSafe(JSON.stringify(data));
   }
   function sendSelectedWord(word: string) {
     setWords([]); //clear the words after selecting so that it stops rendering
@@ -103,6 +104,38 @@ function Game({ token, roomID }: GameProps) {
       if (data.type == "masked_word") {
         const word = data.word as string;
         setSelectedWord(word);
+      }
+
+      if (data.type == "correct_guess") {
+        const guesser = data.username as string;
+        const word = data.word as string;
+        //notify that the guesser has guessed the word
+        console.log("correct guess by " + guesser + " the word was " + word);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            id: Date.now().toString(),
+            sender: guesser,
+            text: word,
+            isSelf: false,
+          },
+        ]);
+        if (data.right) {
+          setSelectedWord(word);
+        }
+      }
+      if (data.type == "wrong_guess") {
+        const guesser = data.username as string;
+        const word = data.word as string;
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            id: Date.now().toString(),
+            sender: guesser,
+            text: word,
+            isSelf: false,
+          },
+        ]);
       }
     };
 

@@ -50,6 +50,7 @@ func handleNewWordMessage(s *melody.Session, word string) {
 			conn.Write(jsondata)
 		}
 	}
+	currentRoom.Word = word; //set the correct word
 	RoomsMu.Unlock();
 	fmt.Println("wrote the new word to all the players");
 }

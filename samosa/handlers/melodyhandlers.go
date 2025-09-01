@@ -99,6 +99,10 @@ func HandleNewMessage(s *melody.Session , msg []byte){
 			return;
 		}
 		handleNewWordMessage(s , word)
+	case "guess":
+		word , _ := m["word"].(string)
+		fmt.Println("guess received ",word)
+		handleGuess(s , word)
 	default:
 		error := "Unknown Type"
 		fmt.Println(error);
@@ -127,6 +131,74 @@ func handleDrawMessage(s *melody.Session, msg []byte) {
 		}
 	}
 
+}
+func handleGuess(s *melody.Session , word string){
+	UserName , err := getUserNameBySession(s)
+	if err != nil {
+		WriteMelodyError(s , "internal server error")
+	}
+	RoomId , err := getRoomIdByUserName(UserName);
+	if err != nil {
+		WriteMelodyError(s , "internal server error")
+	}
+
+	RoomsMu.Lock()
+	currentRoom := Rooms[RoomId]
+	correctWord := currentRoom.Word
+	RoomsMu.Unlock()
+	if(correctWord == word){
+		//correct guess
+		type correctGuessMessage struct{
+			Type string `json:"type"`
+			Username string `json:"username"`
+			Word string `json:"word"`
+			Right bool `json:"right"`
+		}
+		data := correctGuessMessage{
+			Type: "correct_guess",
+			Username: UserName,
+			Word: word,
+			Right: true,
+		}
+		jsondata , err := json.Marshal(data)
+		if err != nil {
+			WriteMelodyError(s , "internal server error")
+			return;
+		}
+		for _ , conn := range(currentRoom.Connections) {
+			if conn == s {
+				data.Right = true
+			}else{
+				data.Right = false
+			}
+			conn.Write(jsondata)
+		}
+	}else{
+		//wrong guess
+		fmt.Println(word)
+		type wrongGuessMessage struct{
+			Type string `json:"type"`
+			Username string `json:"username"`
+			Word string `json:"word"`
+			Right bool `json:"right"`
+		}
+		data := wrongGuessMessage{
+			Type: "wrong_guess",
+			Username: UserName,
+			Word: word,
+			Right: false,
+		}
+		jsondata , err := json.Marshal(data)
+		if err != nil {
+			WriteMelodyError(s , "internal server error")
+			return;
+		}
+		for _ , conn := range(currentRoom.Connections) {
+			if conn != s {
+				conn.Write(jsondata)
+			}
+		}
+	}
 }
 
 func getUserNameBySession(s *melody.Session) (string , error){

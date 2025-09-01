@@ -52,3 +52,8 @@ export type LobbyProps = {
   onJoin: (roomCode: string, userName: string) => void;
   onCreate: (userName: string) => void;
 };
+
+export type guessMessage = {
+  type: "guess";
+  word: string;
+};

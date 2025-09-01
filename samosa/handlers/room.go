@@ -25,6 +25,7 @@ type Room struct {
 	State string // e.g., "waiting", "in-game", "finished"
 	artist *melody.Session //the current artist
 	Players []Player
+	Word string //correct word
 }
 
 func StartRoom(r *Room){
