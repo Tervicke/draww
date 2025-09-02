@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import type { PlayersListProps } from "../types.ts";
 
-const PlayersList: React.FC<PlayersListProps> = ({ players }) => {
+const PlayersList: React.FC<PlayersListProps> = ({
+  players,
+  correctGuesses,
+}) => {
   return (
     <div style={styles.wrapper}>
       <div style={styles.label}>🧑‍🤝‍🧑 Players</div>
@@ -11,7 +14,11 @@ const PlayersList: React.FC<PlayersListProps> = ({ players }) => {
           style={{
             ...styles.playerCard,
             border: player.isTurn ? "2px solid #4caf50" : "1px solid #ccc",
-            backgroundColor: player.isTurn ? "#e8f5e9" : "#fff",
+            backgroundColor: player.isTurn
+              ? "#e8f5e9"
+              : correctGuesses.includes(player.username)
+              ? "#d0f0c0"
+              : "#fff",
           }}
         >
           <div style={styles.username}>{player.username}</div>

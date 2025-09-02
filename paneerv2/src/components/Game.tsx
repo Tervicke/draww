@@ -20,6 +20,7 @@ function Game({ token, roomID }: GameProps) {
   const [words, setWords] = useState<string[]>([]); //setwords if the current player is artist and his word of choices
   const [selectword, setSelectedWord] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [correctGuesses, setCorrectGuesses] = useState<string[]>([]); //list of users who have guessed correctly
 
   function handleSend(text: string) {
     // Implement the logic to send a message
@@ -111,15 +112,23 @@ function Game({ token, roomID }: GameProps) {
         const word = data.word as string;
         //notify that the guesser has guessed the word
         console.log("correct guess by " + guesser + " the word was " + word);
+
+        //update the message
         setMessages((prevMessages) => [
           ...prevMessages,
           {
             id: Date.now().toString(),
             sender: guesser,
-            text: word,
+            text: "correctly guessed the word",
             isSelf: false,
           },
         ]);
+
+        //update the correct guuesses list
+        setCorrectGuesses((prev) => {
+          return [...prev, guesser];
+        });
+
         if (data.right) {
           setSelectedWord(word);
         }
@@ -136,6 +145,11 @@ function Game({ token, roomID }: GameProps) {
             isSelf: false,
           },
         ]);
+      }
+
+      if (data.type == "game_end") {
+        alert("Game Over! The word was: " + data.word);
+        setSelectedWord(data.word);
       }
     };
 
@@ -172,7 +186,7 @@ function Game({ token, roomID }: GameProps) {
       <div style={styles.wrapper}>
         {/* Left: Players */}
         <div style={{ ...styles.container, ...styles.left }}>
-          <PlayersList players={players} />
+          <PlayersList players={players} correctGuesses={correctGuesses} />
         </div>
 
         {/* Center: Drawing board */}

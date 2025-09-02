@@ -6,6 +6,7 @@ export type Player = {
 
 export type PlayersListProps = {
   players: Player[];
+  correctGuesses: string[]; // list of users who have guessed correctly
 };
 
 export type drawingData = {

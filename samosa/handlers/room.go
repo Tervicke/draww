@@ -84,4 +84,33 @@ func StartRoom(r *Room){
 		conn.Write(jsondata)
 	}
 
+
+	//start the goroutine to end the game after 3 minutes 
+	go func(){
+		 // time.Sleep(3 * time.Minute) 3 minutes
+		 time.Sleep(100 * time.Second) //for testing 15 second 
+		endRoom(r);
+	}();
+
+}
+
+func endRoom(r *Room){
+	type endGameMessage struct {
+		Type string `json:"type"`
+		Word string `json:"word"` 
+	}
+	data := endGameMessage{
+		Type: "game_end",
+		Word: r.Word,
+	}
+	jsondata , err := json.Marshal(data)
+	if err != nil {
+		log.Println("Error marshalling end game message:", err)
+		return;
+	}
+	for _ , conn := range(r.Connections) {
+		conn.Write(jsondata)
+	}
+	r.State = "finished"
+	fmt.Println("game ended for room " , r.ID);
 }
