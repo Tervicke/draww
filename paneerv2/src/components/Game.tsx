@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DrawingBoard from "./DrawingBoard.tsx";
 import { useWebSocket } from "./WebSocketContext.tsx";
 import PlayersList from "./PlayerList.tsx";
@@ -165,16 +165,18 @@ function Game({ token, roomID }: GameProps) {
     }
   }, [socket, token]);
   return (
-    <div style={styles.page}>
+    <div className="flex flex-col h-screen bg-gray-100">
       {/* Header */}
-      <header style={styles.header}>
-        <h1 style={styles.title}>Draww 🎨</h1>
-        <div>Room Code: {roomID}</div>
-        <div>{selectword}</div>
+      <header className="flex justify-between items-center px-6 py-3 bg-blue-600 text-white shadow-md">
+        <h1 className="text-2xl font-bold">Draww 🎨</h1>
+        <div className="flex gap-6 text-lg">
+          <span>Room Code: {roomID}</span>
+          <span>{selectword}</span>
+        </div>
       </header>
 
       {/* Word selection */}
-      <div style={{ marginBottom: "20px" }}>
+      <div className="mb-5 flex justify-center mt-3">
         <WordSelection
           words={words}
           isArtist={isArtist}
@@ -182,75 +184,31 @@ function Game({ token, roomID }: GameProps) {
         />
       </div>
 
-      {/* Main game area */}
-      <div style={styles.wrapper}>
-        {/* Left: Players */}
-        <div style={{ ...styles.container, ...styles.left }}>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Players */}
+        <div className="flex-[1.2] bg-white p-4 border-r overflow-y-auto">
           <PlayersList players={players} correctGuesses={correctGuesses} />
         </div>
 
-        {/* Center: Drawing board */}
-        <div style={{ ...styles.container, ...styles.center }}>
-          <DrawingBoard
-            token={token}
-            socket={socket}
-            drawdata={drawdata}
-            isArtist={isArtist}
-          />
+        {/* Drawing board */}
+        <div className="flex-[2] bg-gray-200 p-4 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-2">
+            <DrawingBoard
+              token={token}
+              socket={socket}
+              drawdata={drawdata}
+              isArtist={isArtist}
+            />
+          </div>
         </div>
 
-        {/* Right: Chat */}
-        <div style={{ ...styles.container, ...styles.right }}>
+        {/* Chat */}
+        <div className="flex-[1.2] bg-white p-4 border-l overflow-y-auto">
           <ChatSection messages={messages} onSend={handleSend} />
         </div>
       </div>
     </div>
   );
 }
-const styles: { [key: string]: React.CSSProperties } = {
-  page: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    height: "100vh",
-    background: "#f8fafc", // light gray bg
-    padding: "10px",
-    boxSizing: "border-box",
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "10px",
-  },
-  title: {
-    margin: 0,
-    fontSize: "2rem",
-    color: "#1e293b",
-  },
-  wrapper: {
-    display: "flex",
-    flex: 1,
-    width: "100%",
-    maxWidth: "1200px",
-    gap: "10px",
-  },
-  container: {
-    flex: 1,
-    padding: "10px",
-    boxSizing: "border-box",
-    background: "white",
-    borderRadius: "12px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-    display: "flex",
-    flexDirection: "column",
-  },
-  left: {
-    maxWidth: "200px",
-  },
-  center: {
-    flex: 2, // bigger center for drawing board
-  },
-  right: {
-    maxWidth: "300px",
-  },
-};
+
 export default Game;

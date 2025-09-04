@@ -89,12 +89,12 @@ func StartRoom(r *Room){
 	go func(){
 		 // time.Sleep(3 * time.Minute) 3 minutes
 		 time.Sleep(100 * time.Second) //for testing 15 second 
-		endRoom(r);
+		endRound(r);
 	}();
 
 }
 
-func endRoom(r *Room){
+func endRound(r *Room){
 	type endGameMessage struct {
 		Type string `json:"type"`
 		Word string `json:"word"` 
@@ -112,5 +112,5 @@ func endRoom(r *Room){
 		conn.Write(jsondata)
 	}
 	r.State = "finished"
-	fmt.Println("game ended for room " , r.ID);
+	fmt.Println("round ended for room " , r.ID);
 }
