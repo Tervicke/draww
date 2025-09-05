@@ -6,6 +6,7 @@ import type {
   drawingData,
   GameProps,
   Message,
+  newRoundMessage,
   Player,
   StartGameMessage,
 } from "../types.ts";
@@ -22,6 +23,18 @@ function Game({ token, roomID }: GameProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [correctGuesses, setCorrectGuesses] = useState<string[]>([]); //list of users who have guessed correctly
 
+  //player score update
+  function updatescore(score: number, username: string) {
+    updatePlayers((prevPlayers) =>
+      prevPlayers.map((player) =>
+        player.username === username
+          ? { ...player, score } // create new object
+          : player
+      )
+    );
+  }
+
+  //handle sending a message
   function handleSend(text: string) {
     // Implement the logic to send a message
     setMessages((prevMessages) => [
@@ -57,6 +70,10 @@ function Game({ token, roomID }: GameProps) {
     }
   }, [words, isArtist]);
 
+  useEffect(() => {
+    console.log("players updated", players);
+  }, [players]);
+
   //send the initial token for verification on the server end
   useEffect(() => {
     if (!socket) {
@@ -73,8 +90,8 @@ function Game({ token, roomID }: GameProps) {
       console.log(data);
       //update players
       if (data.type == "players_update") {
-        const players = data.players as Player[];
-        updatePlayers(players);
+        const updatedplayers = data.players as Player[];
+        updatePlayers(updatedplayers);
       }
 
       //drawing data
@@ -132,6 +149,8 @@ function Game({ token, roomID }: GameProps) {
         if (data.right) {
           setSelectedWord(word);
         }
+        //update the score
+        updatescore(data.score, guesser);
       }
       if (data.type == "wrong_guess") {
         const guesser = data.username as string;
@@ -150,6 +169,18 @@ function Game({ token, roomID }: GameProps) {
       if (data.type == "game_end") {
         alert("Game Over! The word was: " + data.word);
         setSelectedWord(data.word);
+      }
+
+      if (data.type == "new_round") {
+        const roundData = data as newRoundMessage;
+        if (!roundData.artist) {
+          alert(roundData.name + " is choosing a word");
+        }
+        setIsArtist(roundData.artist);
+        setWords(roundData.words ? [...roundData.words] : []);
+        setCorrectGuesses([]);
+        console.log(roundData.scores);
+        //updateScore(roundData.scores);
       }
     };
 

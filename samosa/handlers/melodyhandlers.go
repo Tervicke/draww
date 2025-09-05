@@ -147,18 +147,25 @@ func handleGuess(s *melody.Session , word string){
 	correctWord := currentRoom.Word
 	RoomsMu.Unlock()
 	if(correctWord == word){
+		//add the score 
+		currentRoom.Scores[s] += 100 * (int(currentRoom.Roundendtime - currentRoom.Roundstarttime)/60) //score is 100 * minutes left
+		log.Printf("user %s guessed the word %s correctly and now has score %d\n",UserName,word,currentRoom.Scores[s])
+
+		//send the updated scores to all the players
 		//correct guess
 		type correctGuessMessage struct{
 			Type string `json:"type"`
 			Username string `json:"username"`
 			Word string `json:"word"`
 			Right bool `json:"right"`
+			Score int `json:"score"`
 		}
 		data := correctGuessMessage{
 			Type: "correct_guess",
 			Username: UserName,
 			Word: word,
 			Right: true,
+			Score: currentRoom.Scores[s],
 		}
 		jsondata , err := json.Marshal(data)
 		if err != nil {

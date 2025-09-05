@@ -58,3 +58,11 @@ export type guessMessage = {
   type: "guess";
   word: string;
 };
+
+export type newRoundMessage = {
+  type: "new_round";
+  artist: boolean;
+  name: string;
+  words: string[];
+  scores: Map<string, number>;
+};

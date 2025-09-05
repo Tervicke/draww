@@ -93,8 +93,17 @@ func handleTokenMessage(s *melody.Session , token string){
 
 	//get the room and check if the room has 2 players if yes start the game 
 	//check if room can be started
+	//set the scores to 0 
 	RoomsMu.Lock()
-	room := Rooms[roomID] 
+	room := Rooms[roomID]
+	if (room.Scores == nil){
+		room.Scores = make(map[*melody.Session]int)
+	}
+	room.Scores[s] = 0
+	RoomsMu.Unlock()
+
+	RoomsMu.Lock()
+	room = Rooms[roomID] 
 	RoomsMu.Unlock();
 	//start the game if there are more than 2 players
 	if(len(room.Connections) >= 2){

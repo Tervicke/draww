@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import type { PlayersListProps } from "../types.ts";
 
 const PlayersList: React.FC<PlayersListProps> = ({

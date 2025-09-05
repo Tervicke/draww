@@ -26,20 +26,28 @@ type Room struct {
 	artist *melody.Session //the current artist
 	Players []Player
 	Word string //correct word
+	Rounds int //number of rounds played
+	Scores map[*melody.Session]int //map of session to score
+	Roundendtime int64 //unix timestamp when the round ends
+	Roundstarttime int64 //unix timestamp when the round starts	
+	roundTimer *time.Timer //hold the active timer
 }
 
 func StartRoom(r *Room){
+	//increase the no of rounds 
+	r.Rounds = 1;
+
 	//start the game logic here
 	r.State = "in-game";
 
+	//set start time 
+	r.Roundstarttime = time.Now().Unix();
+
+	//set the end time 3 minutes from now
+	r.Roundendtime = time.Now().Add(3 * time.Minute).Unix(); // e.g., game lasts 3 minutes
+
     // Pick a random artist from the connections
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-    if len(r.Connections) > 0 {
-        randomIndex := rng.Intn(len(r.Connections))
-        r.artist = r.Connections[randomIndex]
-		fmt.Println(r.ID);
-		fmt.Println("artist pciked" , r.artist , "index-",randomIndex);
-    }
+	setNewArtist(r); //r.Artist is now a valid artist 
 
 	type startGameMessage struct {	
 		Type    string `json:"type"`
@@ -65,7 +73,7 @@ func StartRoom(r *Room){
 				Endtime: time.Now().Add(3 * time.Minute).Unix(), // e.g., game lasts 3 minutes
 				Artist:  true,
 				Name: Name, //get the artist name
-				Words: []string{getRandomWord(), getRandomWord(), getRandomWord()}, //send 3 random words to choose from
+				Words: setNewWords(),
 			}
 		} else {
 			// Notify other players
@@ -86,19 +94,21 @@ func StartRoom(r *Room){
 
 
 	//start the goroutine to end the game after 3 minutes 
-	go func(){
-		 // time.Sleep(3 * time.Minute) 3 minutes
-		 time.Sleep(100 * time.Second) //for testing 15 second 
+	r.roundTimer = time.AfterFunc(15 * time.Second , func() {
 		endRound(r);
-	}();
-
+	})
 }
 
 func endRound(r *Room){
+	if r.roundTimer != nil {
+		r.roundTimer.Stop()
+	}
+
 	type endGameMessage struct {
 		Type string `json:"type"`
 		Word string `json:"word"` 
 	}
+
 	data := endGameMessage{
 		Type: "game_end",
 		Word: r.Word,
@@ -113,4 +123,116 @@ func endRound(r *Room){
 	}
 	r.State = "finished"
 	fmt.Println("round ended for room " , r.ID);
+	//restart game after some time
+	time.AfterFunc(5 * time.Second , func() {
+		restartRound(r)
+	})
+}
+
+func restartRound(r *Room){
+	//set start time 
+	r.Roundstarttime = time.Now().Unix();
+
+	//set the end time 3 minutes from now
+	r.Roundendtime = time.Now().Add(3 * time.Minute).Unix(); // e.g., game lasts 3 minutes
+
+	//increase the no of rounds
+	r.Rounds++;
+
+	type newRound struct {
+		Type string `json:"type"`
+		Artist  bool `json:"artist"` //yes or no only
+		Name string `json:"name"`
+		Words []string `json:"words"`
+		Scores map[string]int `json:"scores,omitempty"` // scores for everyone updated
+	}
+	//set new artist
+	setNewArtist(r);
+	scores := getRoundScores(r)
+	fmt.Println("Scores are ",scores)
+
+	// Notify all players about the game start and the artist	
+	for _, conn := range r.Connections {
+		data := newRound{}
+
+		Name , err := getUserNameBySession(r.artist); //get the artist name
+		if err != nil {
+			log.Println("Error getting username for session:", err)
+			continue
+		}
+		if conn == r.artist {
+			// Notify the artist
+			data = newRound{
+				Type:    "new_round",
+				Artist:  true,
+				Name: Name, //get the artist namek
+				Words: setNewWords(),
+				Scores: scores,
+			}
+		} else {
+			// Notify other players
+			data = newRound{
+				Type:    "new_round",
+				Artist:  false,
+				Name:Name,
+				Scores: scores,
+			}
+		}
+
+		jsondata, err := json.Marshal(data)
+		if err != nil {
+			log.Println("Error marshalling start game message:", err)
+			continue
+		}
+		conn.Write(jsondata)
+	}
+	fmt.Println("current round " , r.Rounds);
+}
+
+func setNewArtist(r *Room){
+    // Pick a random artist from the connections
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+    if len(r.Connections) > 0 {
+        randomIndex := rng.Intn(len(r.Connections))
+        r.artist = r.Connections[randomIndex]
+		fmt.Println(r.ID);
+		fmt.Println("artist pciked" , r.artist , "index-",randomIndex);
+    }
+
+
+}
+
+func setNewWords()([]string){
+	words := []string{
+		"apple", "banana", "cat", "dog", "elephant", "flower", "guitar", "house", "ice cream", "jungle",
+		"kite", "lion", "mountain", "notebook", "ocean", "piano", "queen", "rainbow", "sun", "tree",
+		"umbrella", "violin", "whale", "xylophone", "yacht", "zebra",
+	}
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	selectedWords := make(map[string]bool)
+	uniqueWords := []string{}
+
+	for len(uniqueWords) < 3 {
+		word := words[rng.Intn(len(words))]
+		if !selectedWords[word] {
+			selectedWords[word] = true
+			uniqueWords = append(uniqueWords, word)
+		}
+	}
+
+	return uniqueWords;
+}
+
+func getRoundScores(r *Room) map[string]int {
+	scores := make(map[string]int)
+	for session, score := range r.Scores {
+		username, err := getUserNameBySession(session)
+		if err != nil {
+			log.Println("Error getting username for session:", err)
+			continue
+		}
+		scores[username] = score
+	}
+	return scores
 }
