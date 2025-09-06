@@ -25,12 +25,15 @@ function Game({ token, roomID }: GameProps) {
 
   //player score update
   function updatescore(score: number, username: string) {
-    updatePlayers((prevPlayers) =>
-      prevPlayers.map((player) =>
-        player.username === username
-          ? { ...player, score } // create new object
-          : player
-      )
+    updatePlayers(
+      (prevPlayers) =>
+        prevPlayers
+          .map((player) =>
+            player.username === username
+              ? { ...player, score } // create new object
+              : player
+          )
+          .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)) // sort descending by score
     );
   }
 
