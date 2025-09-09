@@ -31,6 +31,7 @@ type Room struct {
 	Roundendtime int64 //unix timestamp when the round ends
 	Roundstarttime int64 //unix timestamp when the round starts	
 	roundTimer *time.Timer //hold the active timer
+	correctGuesses (map[*melody.Session]bool) //list of sessions who guessed correctly
 }
 
 func StartRoom(r *Room){
@@ -49,6 +50,9 @@ func StartRoom(r *Room){
     // Pick a random artist from the connections
 	setNewArtist(r); //r.Artist is now a valid artist 
 
+	//create the map for scores
+	r.correctGuesses = make(map[*melody.Session]bool)
+
 	type startGameMessage struct {	
 		Type    string `json:"type"`
 		Endtime int64 `json:"endtime"`
@@ -59,6 +63,9 @@ func StartRoom(r *Room){
 
 	// Notify all players about the game start and the artist	
 	for _, conn := range r.Connections {
+		//make all the correctguesses to false
+		r.correctGuesses[conn] = false;
+
 		data := startGameMessage{}
 
 		Name , err := getUserNameBySession(r.artist); //get the artist name

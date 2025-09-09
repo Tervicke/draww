@@ -146,10 +146,20 @@ func handleGuess(s *melody.Session , word string){
 	currentRoom := Rooms[RoomId]
 	correctWord := currentRoom.Word
 	RoomsMu.Unlock()
+
+	fmt.Println("team checking 1st");
+
 	if(correctWord == word){
-		//add the score 
-		currentRoom.Scores[s] += 100 * (int(currentRoom.Roundendtime - currentRoom.Roundstarttime)/60) //score is 100 * minutes left
-		log.Printf("user %s guessed the word %s correctly and now has score %d\n",UserName,word,currentRoom.Scores[s])
+
+		//add the score if the user has not already guessed the word
+		if(currentRoom.correctGuesses[s] == false){
+			currentRoom.Scores[s] += 100 * (int(currentRoom.Roundendtime - currentRoom.Roundstarttime)/60) //score is 100 * minutes left
+			log.Printf("user %s guessed the word %s correctly and now has score %d\n",UserName,word,currentRoom.Scores[s])
+		}
+
+		//set the correct Guess
+		fmt.Println("team checking 2nd");
+		currentRoom.correctGuesses[s] = true;
 
 		//send the updated scores to all the players
 		//correct guess

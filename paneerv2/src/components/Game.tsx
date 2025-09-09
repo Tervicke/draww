@@ -25,6 +25,17 @@ function Game({ token, roomID }: GameProps) {
 
   //player score update
   function updatescore(score: number, username: string) {
+    setCorrectGuesses((prev) => {
+      if (prev.includes(username)) {
+        return prev; // If the username is already in the list, return the previous state
+      }
+      return [...prev, username]; // Otherwise, add the username to the list
+    });
+
+    if (correctGuesses.includes(username)) {
+      return; //if the user has already guessed correctly, do not update the score again
+    }
+
     updatePlayers(
       (prevPlayers) =>
         prevPlayers
@@ -143,11 +154,6 @@ function Game({ token, roomID }: GameProps) {
             isSelf: false,
           },
         ]);
-
-        //update the correct guuesses list
-        setCorrectGuesses((prev) => {
-          return [...prev, guesser];
-        });
 
         if (data.right) {
           setSelectedWord(word);

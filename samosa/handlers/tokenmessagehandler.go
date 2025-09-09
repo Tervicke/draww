@@ -72,7 +72,7 @@ func handleTokenMessage(s *melody.Session , token string){
 	defer UserRoomsMU.Unlock()
 	roomID , ok := UserRooms[Username]   
 	if !ok{
-		WriteMelodyError(s , "server mismatch something is going terriblyw wrong");
+		WriteMelodyError(s , "server mismatch something is going terribly wrong");
 		return;
 	}
 
@@ -105,6 +105,7 @@ func handleTokenMessage(s *melody.Session , token string){
 	RoomsMu.Lock()
 	room = Rooms[roomID] 
 	RoomsMu.Unlock();
+
 	//start the game if there are more than 2 players
 	if(len(room.Connections) >= 2){
 		StartRoom(room);
