@@ -35,24 +35,8 @@ type Room struct {
 }
 
 func StartRoom(r *Room){
-	//increase the no of rounds 
-	r.Rounds = 1;
-
-	//start the game logic here
-	r.State = "in-game";
-
-	//set start time 
-	r.Roundstarttime = time.Now().Unix();
-
-	//set the end time 3 minutes from now
-	r.Roundendtime = time.Now().Add(3 * time.Minute).Unix(); // e.g., game lasts 3 minutes
-
-    // Pick a random artist from the connections
-	setNewArtist(r); //r.Artist is now a valid artist 
-
 	//create the map for scores
 	r.correctGuesses = make(map[*melody.Session]bool)
-
 	type startGameMessage struct {	
 		Type    string `json:"type"`
 		Endtime int64 `json:"endtime"`
@@ -60,53 +44,15 @@ func StartRoom(r *Room){
 		Name  string `json:"name"` //artist name
 		Words []string `json:"words,omitempty"` //only for the artist
 	}
-
-	// Notify all players about the game start and the artist	
-	for _, conn := range r.Connections {
-		//make all the correctguesses to false
-		r.correctGuesses[conn] = false;
-
-		data := startGameMessage{}
-
-		Name , err := getUserNameBySession(r.artist); //get the artist name
-		if err != nil {
-			log.Println("Error getting username for session:", err)
-			continue
-		}
-		if conn == r.artist {
-			// Notify the artist
-			data = startGameMessage{
-				Type:    "game_start",
-				Endtime: time.Now().Add(3 * time.Minute).Unix(), // e.g., game lasts 3 minutes
-				Artist:  true,
-				Name: Name, //get the artist name
-				Words: setNewWords(),
-			}
-		} else {
-			// Notify other players
-			data = startGameMessage{
-				Type:    "game_start",
-				Endtime: time.Now().Add(3 * time.Minute).Unix(),
-				Artist:  false,
-				Name:Name,
-			}
-		}
-		jsondata, err := json.Marshal(data)
-		if err != nil {
-			log.Println("Error marshalling start game message:", err)
-			continue
-		}
-		conn.Write(jsondata)
-	}
-
-
-	//start the goroutine to end the game after 3 minutes 
-	r.roundTimer = time.AfterFunc(15 * time.Second , func() {
-		endRound(r);
-	})
+	//strt the restart -> endround cycle
+	restartRound(r);
 }
 
 func endRound(r *Room){
+	//check if the game is already finished , the round is already ended
+	if(r.State == "finished"){
+		return;
+	}
 	if r.roundTimer != nil {
 		r.roundTimer.Stop()
 	}
@@ -137,6 +83,14 @@ func endRound(r *Room){
 }
 
 func restartRound(r *Room){
+
+	//check if the rounds played is equal to the number of players if yes end the game
+	if(r.Rounds >= len(r.Connections)){
+		//end the game
+		fmt.Println("game finished for room " , r.ID);
+		return;
+	}
+
 	//set start time 
 	r.Roundstarttime = time.Now().Unix();
 
@@ -145,6 +99,14 @@ func restartRound(r *Room){
 
 	//increase the no of rounds
 	r.Rounds++;
+
+	//set the game state 
+	r.State = "in-game";
+
+	//reset all the correct guesses to false
+	for k := range r.correctGuesses {
+		r.correctGuesses[k] = false
+	}
 
 	type newRound struct {
 		Type string `json:"type"`
@@ -194,6 +156,10 @@ func restartRound(r *Room){
 		conn.Write(jsondata)
 	}
 	fmt.Println("current round " , r.Rounds);
+	
+	r.roundTimer = time.AfterFunc(15 * time.Second, func (){
+		endRound(r);
+	})
 }
 
 func setNewArtist(r *Room){
