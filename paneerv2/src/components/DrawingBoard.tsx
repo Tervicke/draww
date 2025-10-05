@@ -21,7 +21,12 @@ function drawStroke(ctx: CanvasRenderingContext2D, stroke: drawingData) {
   }
 }
 
-function DrawingBoard({ socket, drawdata, isArtist }: DrawingBoardProps) {
+function DrawingBoard({
+  socket,
+  drawdata,
+  isArtist,
+  clearSignal,
+}: DrawingBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawing = useRef(false);
@@ -43,6 +48,16 @@ function DrawingBoard({ socket, drawdata, isArtist }: DrawingBoardProps) {
 
     ctxRef.current = ctx;
   }, []);
+
+  //clear the canvas
+  useEffect(() => {
+    const ctx = ctxRef.current;
+    const canvas = canvasRef.current;
+    if (canvas && ctx) {
+      //ensure canvas and ctx are not null
+      ctx?.clearRect(0, 0, canvas?.width, canvas?.height);
+    }
+  }, [clearSignal]);
 
   //update the data
   useEffect(() => {

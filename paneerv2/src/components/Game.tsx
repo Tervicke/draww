@@ -22,6 +22,7 @@ function Game({ token, roomID }: GameProps) {
   const [selectword, setSelectedWord] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [correctGuesses, setCorrectGuesses] = useState<string[]>([]); //list of users who have guessed correctly
+  const [clearSignal, setClearSignal] = useState(0);
 
   //player score update
   function updatescore(score: number, username: string) {
@@ -178,6 +179,7 @@ function Game({ token, roomID }: GameProps) {
       if (data.type == "game_end") {
         alert("Game Over! The word was: " + data.word);
         setSelectedWord(data.word);
+        setClearSignal((prev) => prev + 1); //send a signal to clear the board
       }
 
       if (data.type == "new_round") {
@@ -238,6 +240,7 @@ function Game({ token, roomID }: GameProps) {
               socket={socket}
               drawdata={drawdata}
               isArtist={isArtist}
+              clearSignal={clearSignal}
             />
           </div>
         </div>

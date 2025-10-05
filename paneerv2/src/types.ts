@@ -21,6 +21,7 @@ export type DrawingBoardProps = {
   socket: WebSocket | null;
   drawdata: drawingData | null;
   isArtist: boolean;
+  clearSignal: number;
 };
 
 export type StartGameMessage = {
