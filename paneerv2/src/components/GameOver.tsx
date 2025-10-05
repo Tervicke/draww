@@ -1,4 +1,5 @@
 import React from "react";
+import type { Score } from "../types";
 
 export type Player = {
   username: string;
@@ -7,43 +8,44 @@ export type Player = {
 };
 
 type GameOverProps = {
-  playerList: Player[];
+  scoreList: Score[];
   onPlayAgain: () => void;
 };
 
 const GameOverScreen: React.FC<GameOverProps> = ({
-  playerList,
+  scoreList,
   onPlayAgain,
 }) => {
-  const sortedPlayers = [...playerList].sort(
+  const sortedPlayers = [...scoreList].sort(
     (a, b) => (b.score || 0) - (a.score || 0)
   );
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white p-6">
-      <h1 className="text-4xl font-bold mb-6">🎉 Game Over 🎉</h1>
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-md rounded-2xl shadow-xl p-6">
-        <h2 className="text-2xl font-semibold text-center mb-4">Leaderboard</h2>
-        <ul className="space-y-3">
-          {sortedPlayers.map((player, index) => (
+    <div className="flex flex-col items-center min-h-screen bg-gray-100 text-gray-900 p-6">
+      <h1 className="text-3xl font-semibold mb-6">Game Over</h1>
+
+      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-6">
+        <h2 className="text-xl font-medium text-center mb-4">Leaderboard</h2>
+
+        <ul className="divide-y divide-gray-200">
+          {sortedPlayers.map((score, index) => (
             <li
-              key={player.username}
-              className={`flex justify-between items-center p-3 rounded-xl shadow-sm ${
-                index === 0
-                  ? "bg-yellow-400 text-black font-bold"
-                  : "bg-white/20"
+              key={score.username}
+              className={`flex justify-between items-center py-3 ${
+                index === 0 ? "font-bold text-gray-800" : "text-gray-700"
               }`}
             >
               <span>
-                {index + 1}. {player.username}
+                {index + 1}. {score.username}
               </span>
-              <span>{player.score ?? 0} pts</span>
+              <span>{score.score ?? 0} pts</span>
             </li>
           ))}
         </ul>
       </div>
+
       <button
-        className="mt-6 px-6 py-3 rounded-2xl bg-green-500 hover:bg-green-600 text-white shadow-lg"
+        className="mt-6 px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition"
         onClick={onPlayAgain}
       >
         🔄 Play Again

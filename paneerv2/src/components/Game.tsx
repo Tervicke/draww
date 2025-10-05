@@ -8,12 +8,13 @@ import type {
   Message,
   newRoundMessage,
   Player,
+  Score,
   StartGameMessage,
 } from "../types.ts";
 import WordSelection from "./WordSelection.tsx";
 import ChatSection from "./ChatSection.tsx";
 
-function Game({ token, roomID }: GameProps) {
+function Game({ token, roomID, onGameOver }: GameProps) {
   const socket = useWebSocket();
   const [players, updatePlayers] = useState<Player[]>([]);
   const [drawdata, updateDrawData] = useState<drawingData | null>(null);
@@ -192,6 +193,19 @@ function Game({ token, roomID }: GameProps) {
         setCorrectGuesses([]);
         console.log(roundData.scores);
         //updateScore(roundData.scores);
+      }
+
+      if (data.type == "game_over") {
+        const scoreObj = data.scores as Record<string, number>;
+        //convert scoreobject into the scores arrays
+        const scores: Score[] = Object.entries(scoreObj).map(
+          ([username, score]) => ({
+            username,
+            score,
+          })
+        );
+        console.log(scores);
+        onGameOver(scores);
       }
     };
 

@@ -3,6 +3,8 @@ import { useState } from "react";
 import Game from "./components/Game.tsx";
 import Lobby from "./components/Lobby.tsx";
 import { WebSocketProvider } from "./components/WebSocketContext.tsx";
+import GameOverScreen from "./components/GameOver.tsx";
+import type { Score } from "./types.ts";
 
 //game states => Lobby , GameRunning , GameOver
 function App() {
@@ -11,6 +13,12 @@ function App() {
   const [token, setToken] = useState<string>("");
   const [gameState, changeState] = useState<GameState>("Lobby");
   const [roomID, setRoomID] = useState<string>("");
+  const [scores, setScores] = useState<Score[]>([]);
+
+  function onGameOver(scores: Score[]): void {
+    changeState("GameOver");
+    setScores(scores);
+  }
 
   function createRoom(userName: string): void {
     //send the create room post request which will send back the room ID and the token
@@ -57,13 +65,19 @@ function App() {
   if (gameState == "GameRunning") {
     return (
       <WebSocketProvider>
-        <Game token={token} roomID={roomID}></Game>
+        <Game token={token} roomID={roomID} onGameOver={onGameOver}></Game>
       </WebSocketProvider>
     );
   }
 
   if (gameState == "Lobby") {
     return <Lobby onCreate={createRoom} onJoin={joinRoom}></Lobby>;
+  }
+
+  if (gameState == "GameOver") {
+    return (
+      <GameOverScreen scoreList={scores} onPlayAgain={function (): void {}} />
+    );
   }
 }
 

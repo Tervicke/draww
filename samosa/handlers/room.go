@@ -85,9 +85,10 @@ func endRound(r *Room){
 func restartRound(r *Room){
 
 	//check if the rounds played is equal to the number of players if yes end the game
-	if(r.Rounds >= len(r.Connections)){
+	if(true){
 		//end the game
 		fmt.Println("game finished for room " , r.ID);
+		gameOver(r);
 		return;
 	}
 
@@ -208,4 +209,32 @@ func getRoundScores(r *Room) map[string]int {
 		scores[username] = score
 	}
 	return scores
+}
+
+func gameOver(r *Room){
+	type gameOverMessage struct {
+		Type string `json:"type"`
+		Scores map[string]int `json:"scores"`
+	}
+
+	scores := getRoundScores(r)
+
+	data := gameOverMessage{
+		Type: "game_over",
+		Scores: scores,
+	}
+
+	jsondata , err := json.Marshal(data)
+	if err != nil {
+		log.Println("Error marshalling game over message:", err)
+		return;
+	}
+
+	for _ , conn := range(r.Connections) {
+		conn.Write(jsondata)
+	}
+
+	//set the room state to finished
+	r.State = "finished"
+	fmt.Println("game over for room " , r.ID);
 }

@@ -48,6 +48,7 @@ export type Message = {
 export type GameProps = {
   token: string;
   roomID: string;
+  onGameOver: (scores: Score[]) => void;
 };
 
 export type LobbyProps = {
@@ -66,4 +67,9 @@ export type newRoundMessage = {
   name: string;
   words: string[];
   scores: Map<string, number>;
+};
+
+export type Score = {
+  username: string;
+  score: number;
 };
