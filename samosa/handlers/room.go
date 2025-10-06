@@ -85,7 +85,7 @@ func endRound(r *Room){
 func restartRound(r *Room){
 
 	//check if the rounds played is equal to the number of players if yes end the game
-	if(true){
+	if r.Rounds > len(r.Connections){
 		//end the game
 		fmt.Println("game finished for room " , r.ID);
 		gameOver(r);

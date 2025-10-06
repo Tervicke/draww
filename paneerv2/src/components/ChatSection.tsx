@@ -34,14 +34,14 @@ const ChatSection: React.FC<ChatProps> = ({ messages, onSend }) => {
   };
 
   return (
-    <div className="w-full flex flex-col h-96 bg-white rounded-xl shadow-lg border border-gray-200">
+    <div className="w-full flex flex-col h-screen bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       {/* Header */}
-      <div className="px-3 py-2 bg-blue-500 text-white rounded-t-xl font-semibold text-center">
+      <div className="px-3 py-2 bg-blue-500 text-white rounded-t-xl font-semibold text-center flex-shrink-0">
         💬 Chat
       </div>
 
       {/* Messages */}
-      <div className="flex-1 p-3 overflow-y-auto bg-gray-50">
+      <div className="flex-1 p-3 bg-gray-50 overflow-y-auto">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -59,7 +59,7 @@ const ChatSection: React.FC<ChatProps> = ({ messages, onSend }) => {
       </div>
 
       {/* Input */}
-      <div className="p-2 border-t border-gray-200 flex gap-2">
+      <div className="p-2 border-t border-gray-200 flex gap-2 flex-shrink-0 bg-white">
         <input
           type="text"
           value={inputValue}

@@ -221,34 +221,39 @@ function Game({ token, roomID, onGameOver }: GameProps) {
     }
   }, [socket, token]);
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen w-[95%] bg-gray-100 overflow-hidden mx-auto border border-gray-300 rounded-xl shadow-lg">
       {/* Header */}
-      <header className="flex justify-between items-center px-6 py-3 bg-blue-600 text-white shadow-md">
-        <h1 className="text-2xl font-bold">Draww 🎨</h1>
-        <div className="flex gap-6 text-lg">
-          <span>Room Code: {roomID}</span>
-          <span>{selectword}</span>
+      <header className="flex justify-between items-center px-6 py-2 bg-blue-600 text-white shadow-md flex-shrink-0 border-b border-blue-700 rounded-t-xl h-15">
+        <h1 className="text-xl font-bold">Draww 🎨</h1>
+        <div className="flex gap-6 text-base">
+          <span>Room: {roomID}</span>
+          <span className="bg-blue-500 px-3 py-1 rounded-lg">
+            {selectword || "Waiting..."}
+          </span>
         </div>
       </header>
 
-      {/* Word selection */}
-      <div className="mb-5 flex justify-center mt-3">
-        <WordSelection
-          words={words}
-          isArtist={isArtist}
-          onSelect={sendSelectedWord}
-        />
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Players */}
-        <div className="flex-[1.2] bg-white p-4 border-r overflow-y-auto">
-          <PlayersList players={players} correctGuesses={correctGuesses} />
+      {/* Word Selection (only if artist) */}
+      {isArtist && (
+        <div className="bg-white py-2 flex justify-center shadow-sm flex-shrink-0 border-2 border-gray-300 rounded-lg my-2 mx-4">
+          <WordSelection
+            words={words}
+            isArtist={isArtist}
+            onSelect={sendSelectedWord}
+          />
         </div>
+      )}
+
+      {/* Main area */}
+      <div className="flex flex-1 h-[90vh] overflow-hidden px-4 py-2 gap-4">
+        {/* Players */}
+        <aside className="w-[15%] bg-white border-2 border-gray-300 rounded-lg p-3 overflow-y-auto shadow-sm">
+          <PlayersList players={players} correctGuesses={correctGuesses} />
+        </aside>
 
         {/* Drawing board */}
-        <div className="flex-[2] bg-gray-200 p-4 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-2">
+        <section className="w-[65%] bg-gray-200 flex items-center justify-center p-2 border-2 border-gray-300 rounded-lg shadow-sm">
+          <div className="bg-white rounded-xl shadow-md w-full h-full flex items-center justify-center border border-gray-200">
             <DrawingBoard
               token={token}
               socket={socket}
@@ -257,13 +262,27 @@ function Game({ token, roomID, onGameOver }: GameProps) {
               clearSignal={clearSignal}
             />
           </div>
-        </div>
+        </section>
 
         {/* Chat */}
-        <div className="flex-[1.2] bg-white p-4 border-l overflow-y-auto">
+        <aside className="w-[20%] h-full bg-white border-2 border-gray-300 rounded-lg p-3 shadow-sm flex flex-col">
           <ChatSection messages={messages} onSend={handleSend} />
-        </div>
+        </aside>
       </div>
+      <footer className="flex justify-center items-center bg-gray-200 text-gray-700 py-2 mt-2 rounded-lg border-t border-gray-300">
+        <p className="text-sm">
+          Made with <span className="text-red-500">❤️</span> by{" "}
+          <span className="font-semibold">tervicke</span> •
+          <a
+            href="https://github.com/tervicke/your-repo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline ml-1"
+          >
+            GitHub
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }

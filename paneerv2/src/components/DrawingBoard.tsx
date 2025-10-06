@@ -36,17 +36,31 @@ function DrawingBoard({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    canvas.width = 800;
-    canvas.height = 600;
+    const resizeCanvas = () => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+      // Measure the parent container
+      const { width, height } = parent.getBoundingClientRect();
 
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
+      canvas.width = width;
+      canvas.height = height;
 
-    ctxRef.current = ctx;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+
+      ctxRef.current = ctx;
+    };
+
+    // Run once and on window resize
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    return () => window.removeEventListener("resize", resizeCanvas);
   }, []);
 
   //clear the canvas
