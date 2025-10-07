@@ -158,7 +158,7 @@ func restartRound(r *Room){
 	}
 	fmt.Println("current round " , r.Rounds);
 	
-	r.roundTimer = time.AfterFunc(15 * time.Second, func (){
+	r.roundTimer = time.AfterFunc(2 * time.Minute , func (){
 		endRound(r);
 	})
 }
