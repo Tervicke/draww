@@ -15,3 +15,10 @@ A skribble clone made with react and golang
 ![Screenshot showing the Game page](assets/screenshot2.png)
 
 ![Screenshot showing the Game over page](assets/screenshot3.png)
+
+### TODO
+
+- [ ] Unit tests
+- [ ] add a waiting area ( + settings tab)
+- [ ] Handle disconnects
+- [ ] better UI
