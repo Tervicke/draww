@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/olahol/melody"
 )
 
 //shared state with melodyhandlers.go
@@ -28,14 +29,6 @@ func GenerateRoomID() (string, error) {
 		code[i] = roomAlphabet[n.Int64()]
 	}
 	return string(code), nil
-}
-
-type createRoomRequest struct{
-	Username string `json:"username"`
-}
-type joinRoomRequest struct {
-	Username string `json:"username"`
-	RoomID string `json:"roomID"`
 }
 
 func HandleCreateRoom(c *gin.Context) {
@@ -59,11 +52,21 @@ func HandleCreateRoom(c *gin.Context) {
 		return;
 	}
 	fmt.Printf("New Room %s created\n",roomID)
-	c.JSON(200, gin.H{"roomID": roomID, "token": tokenString})
+	c.JSON(200, gin.H{"roomID": roomID, "token": tokenString})	
+
+	//create the room only since we cant add the user yet because we dont have the token and the socket connectionjustyet
+	RoomsMu.Lock()
+	Rooms[roomID] = &Room{
+		ID:          roomID,
+		Connections: []*melody.Session{},
+		State:       "waiting",
+	}
+	RoomsMu.Unlock()
 	//add the user to the UserRoom
-	UserRoomsMU.Lock()
-	UserRooms[req.Username] = roomID
-	UserRoomsMU.Unlock()
+    UserRoomsMU.Lock()
+    UserRooms[req.Username] = roomID
+    UserRoomsMU.Unlock()
+
 }
 
 func HandleJoinRoom(c *gin.Context){

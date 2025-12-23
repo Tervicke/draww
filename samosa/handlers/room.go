@@ -238,3 +238,34 @@ func gameOver(r *Room){
 	r.State = "finished"
 	fmt.Println("game over for room " , r.ID);
 }
+
+func (r *Room) addPlayer(Username string, s *melody.Session) {
+	player := Player{
+        Username: Username,
+        Score:    0,
+        IsTurn:   false,
+    }
+	r.Players = append(r.Players , player); //append the player struct to the players List
+	r.Connections = append(r.Connections,s); //append the session to the connections list
+
+	//send the updated player list to all the players in the room
+	data := playersUpdateMessage{
+		"players_update",
+		r.Players,
+	}
+
+	jsondata , err := json.Marshal(data);
+	if err != nil {
+		log.Println("Error marshalling players update message:", err)
+		return;
+	}
+
+	//send the data to all connections
+	r.sendBytesToAllConnections(jsondata);
+}
+
+func (r *Room) sendBytesToAllConnections(data []byte){
+	for _ , conn := range(r.Connections) {
+		conn.Write(data)
+	}
+}

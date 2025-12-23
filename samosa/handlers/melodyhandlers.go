@@ -77,6 +77,7 @@ func HandleNewMessage(s *melody.Session , msg []byte){
 		WriteMelodyError(s , error);
 		return;
 	}
+	//switch case on the type field 
 	switch typeVal{
 	case "token":
 		token , ok := m["token"].(string)
